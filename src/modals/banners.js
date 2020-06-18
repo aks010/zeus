@@ -6,6 +6,8 @@ const BannerSchema = new mongoose.Schema(
       required: [true, "No Title No Banner :P"],
     },
     priority: Number,
+    link: String,
+    // SubClass: Boolean
   },
   {
     timestamps: true,
