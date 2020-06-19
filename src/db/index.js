@@ -7,6 +7,7 @@ mongoose.connect(mongoDB, {
   useNewUrlParser: true,
   useFindAndModify: false,
   useUnifiedTopology: true,
+  useCreateIndex: true,
 });
 
 //Get the default connection
