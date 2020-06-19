@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const BannerController = require("../controllers/BannersController");
+const BannerController = require("../controllers/BannerController");
 
 router.use(function timeLog(req, res, next) {
   next();

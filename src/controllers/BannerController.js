@@ -1,10 +1,14 @@
-const Banners = require("../modals/banners");
+const Banners = require("../modals/Banner");
 
 const ListBanners = async (req, res) => {
   try {
-    const banners = await Banners.find({}, ["title", "priority"], {
-      sort: { priority: 1 },
-    });
+    const banners = await Banners.find(
+      {},
+      ["title", "priority", "link", "heading", "type"],
+      {
+        sort: { priority: 1 },
+      }
+    );
     res.send(banners);
   } catch (e) {
     res.status(500).send(e);
@@ -17,9 +21,13 @@ const UpdatePriority = async (req, res) => {
     banners.forEach(async (o) => {
       await Banners.findOneAndUpdate({ title: o }, { priority: req.body[o] });
     });
-    banners = await Banners.find({}, ["title", "priority"], {
-      sort: { priority: 1 },
-    });
+    banners = await Banners.find(
+      {},
+      ["title", "priority", "link", "heading", "type"],
+      {
+        sort: { priority: 1 },
+      }
+    );
     res.send(banners);
   } catch (e) {
     console.log(e);
@@ -59,9 +67,11 @@ const RemoveBanner = async (req, res) => {
     });
     if (!removed_banner) return res.status(404).send();
 
-    await (
-      await Banners.find({ priority: { $gte: removed_banner.priority } })
-    ).forEach(async (o) => {
+    const banners = await Banners.find({
+      priority: { $gte: removed_banner.priority },
+    });
+
+    banners.forEach(async (o) => {
       await Banners.updateOne({ _id: o._id }, { priority: o.priority - 1 });
     });
 

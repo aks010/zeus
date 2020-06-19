@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-const BuySellToolsSchema = new mongoose.Schema(
+const autoIncrement = require("mongoose-auto-increment");
+const HotDealSchema = new mongoose.Schema(
   {
     title: {
       type: String,
@@ -20,6 +21,8 @@ const BuySellToolsSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+autoIncrement.initialize(mongoose.connection);
+HotDealSchema.plugin(autoIncrement.plugin, "HotDeal");
 
-var BuySellTools = mongoose.model("BuySellTools", BuySellToolsSchema);
-module.exports = BuySellTools;
+var HotDeal = mongoose.model("HotDeal", HotDealSchema);
+module.exports = HotDeal;

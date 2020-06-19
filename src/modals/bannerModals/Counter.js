@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const autoIncrement = require("mongoose-auto-increment");
 const CounterSchema = new mongoose.Schema(
   {
     title: {
@@ -23,5 +24,7 @@ const CounterSchema = new mongoose.Schema(
   }
 );
 
+autoIncrement.initialize(mongoose.connection);
+CounterSchema.plugin(autoIncrement.plugin, "Counter");
 var Counter = mongoose.model("Counter", CounterSchema);
 module.exports = Counter;

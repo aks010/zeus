@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const ArticlesSchema = new mongoose.Schema(
+const ArticleSchema = new mongoose.Schema(
   {
     title: {
       type: String,
@@ -29,5 +29,5 @@ const ArticlesSchema = new mongoose.Schema(
   }
 );
 
-var Articles = mongoose.model("Articles", ArticlesSchema);
-module.exports = Articles;
+var Article = mongoose.model("Article", ArticleSchema);
+module.exports = Article;
