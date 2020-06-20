@@ -1,17 +1,18 @@
-const MicroService = require("../modals/banners/MicroService");
+const Counter = require("../modals/banners/Counter");
 
 const List = async (req, res) => {
   try {
-    const cn = await MicroService.find(
+    const cn = await Counter.find(
       {},
-      ["title", "icon", "link", "color", "priority", "msId"],
+      ["title", "count", "unit", "type", "priority"],
       {
         sort: { priority: 1 },
       }
     );
+
     res.send(cn);
   } catch (e) {
-    res.status(500).send({ message: "Internal Server Error" });
+    res.status(500).send(e);
   }
 };
 
@@ -24,10 +25,10 @@ const UpdatePriority = async (req, res) => {
   });
   //   console.log(cn);
   try {
-    const allowedIds = await MicroService.find({}, ["msId"]);
+    const allowedIds = await Counter.find({}, ["_id"]);
     let allowedUpdates = [];
 
-    allowedIds.forEach((o) => allowedUpdates.push(o["msId"]));
+    allowedIds.forEach((o) => allowedUpdates.push(o["_id"]));
     let isValidOperation = cn.every((update) =>
       allowedUpdates.includes(update)
     );
@@ -41,38 +42,37 @@ const UpdatePriority = async (req, res) => {
     }
 
     cn.forEach(async (o) => {
-      await MicroService.findOneAndUpdate(
-        { msId: o },
+      await Counter.findOneAndUpdate(
+        { _id: o },
         { priority: req.body[o] - min }
       );
     });
-    cn = await MicroService.find(
+    cn = await Counter.find(
       {},
-      ["title", "icon", "link", "color", "priority", "msId"],
+      ["title", "icon", "link", "color", "priority", "_id"],
       {
         sort: { priority: 1 },
       }
     );
     res.send(cn);
   } catch (e) {
-    console.log(e.message);
-    res.status(500).json({ message: "Something Went Wrong" });
+    console.log(e);
+    res.status(500).json({ message: e.message });
   }
 };
 
 const Create = async (req, res) => {
   try {
-    let cn = await MicroService.findOne({ title: req.body.title });
+    let cn = await Counter.findOne({ title: req.body.title });
     if (!cn) {
-      /// CHECK FOR EMPTY VALUES IN REQUEST
-      cn = new MicroService({ ...req.body });
-      await MicroService.countDocuments({}, function (err, c) {
+      cn = new Counter({ ...req.body });
+      await Counter.countDocuments({}, function (err, c) {
         cn.priority = c;
       });
       cn = await cn.save();
       res.send(cn);
     } else {
-      res.status(400).send({ message: `Title ${req.body.title} is in use!` });
+      res.status(400).send({ message: `Title '${req.body.title}' is in use!` });
     }
   } catch (e) {
     console.log(e);
@@ -83,7 +83,7 @@ const Create = async (req, res) => {
 const Update = async (req, res) => {
   // req.params = id
   let updates = Object.keys(req.body);
-  const allowedUpdates = ["title", "link", "color", "icon"];
+  const allowedUpdates = ["title", "count", "unit", "type"];
   const isValidOperation = updates.every((update) =>
     allowedUpdates.includes(update)
   );
@@ -92,35 +92,31 @@ const Update = async (req, res) => {
     res.status(400).send();
   }
   try {
-    let cn = await MicroService.findOne({ msId: req.params.id });
+    let cn = await Counter.findOne({ _id: req.params.id });
     if (!cn) res.status(404).send();
     updates.forEach((update) => (cn[update] = req.body[update]));
-    /// CHECK FOR EMPTY VALUES
     await cn.save();
     res.send(cn);
   } catch (e) {
     console.log(e);
-    res.status(400).send(e);
+    res.status(400).send({ message: "Can't Update! Title in Use." });
   }
 };
 
 const Remove = async (req, res) => {
   // req.params = msId;
   try {
-    const removed = await MicroService.findOneAndDelete({
-      msId: req.params.id,
+    const removed = await Counter.findOneAndDelete({
+      _id: req.params.id,
     });
     if (!removed) return res.status(400).send();
 
-    const collections = await MicroService.find({
-      priority: { $gte: removed_banner.priority },
+    const collections = await Counter.find({
+      priority: { $gte: removed.priority },
     });
 
     for (const o in collections) {
-      await MicroService.updateOne(
-        { msId: o.msId },
-        { priority: o.priority - 1 }
-      );
+      await Counter.updateOne({ _id: o._id }, { priority: o.priority - 1 });
     }
 
     res.send(removed);

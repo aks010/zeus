@@ -24,6 +24,23 @@ const CounterSchema = new mongoose.Schema(
   }
 );
 
+CounterSchema.statics.sendData = async () => {
+  try {
+    const counter = await Counter.find({}, [
+      "title",
+      "count",
+      "unit",
+      "type",
+      "priority",
+    ]);
+    // console.log(microservices);
+    return counter;
+  } catch (e) {
+    // console.log(e.message);
+    return { message: e.message };
+  }
+};
+
 autoIncrement.initialize(mongoose.connection);
 CounterSchema.plugin(autoIncrement.plugin, "Counter");
 var Counter = mongoose.model("Counter", CounterSchema);
