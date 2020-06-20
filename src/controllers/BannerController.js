@@ -15,6 +15,17 @@ const ListBanners = async (req, res) => {
   }
 };
 
+const ListAllBanners = async (req, res) => {
+  try {
+    const banners = await Banners.sendData();
+    if (!banners.message) res.send(banners);
+    else throw Error(banners.message);
+  } catch (e) {
+    console.log(e);
+    res.status(500).send(e);
+  }
+};
+
 const UpdatePriority = async (req, res) => {
   let banners = Object.keys(req.body);
   try {
@@ -87,4 +98,5 @@ module.exports = {
   CreateBanner,
   UpdatePriority,
   RemoveBanner,
+  ListAllBanners,
 };

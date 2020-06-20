@@ -1,4 +1,4 @@
-const MicroService = require("../modals/bannerModals/MicroService");
+const MicroService = require("../modals/banners/MicroService");
 
 const List = async (req, res) => {
   try {
@@ -9,6 +9,7 @@ const List = async (req, res) => {
         sort: { priority: 1 },
       }
     );
+
     res.send(cn);
   } catch (e) {
     res.status(500).send(e);

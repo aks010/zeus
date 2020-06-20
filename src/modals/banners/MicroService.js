@@ -25,6 +25,24 @@ const MicroServiceSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+MicroServiceSchema.statics.sendData = async () => {
+  try {
+    const microservices = await MicroService.find({}, [
+      "title",
+      "priority",
+      "link",
+      "color",
+      "icon",
+    ]);
+    // console.log(microservices);
+    return microservices;
+  } catch (e) {
+    // console.log(e.message);
+    return { message: e.message };
+  }
+};
+
 autoIncrement.initialize(mongoose.connection);
 MicroServiceSchema.plugin(autoIncrement.plugin, {
   model: "MicroService",
