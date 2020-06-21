@@ -1,14 +1,10 @@
-const Counter = require("../modals/banners/Counter");
+const BuySellTool = require("../modals/banners/BuySellTool");
 
 const List = async (req, res) => {
   try {
-    const cn = await Counter.find(
-      {},
-      ["title", "count", "unit", "type", "priority"],
-      {
-        sort: { priority: 1 },
-      }
-    );
+    const cn = await BuySellTool.find({}, ["title", "icon", "priority"], {
+      sort: { priority: 1 },
+    });
 
     res.send(cn);
   } catch (e) {
@@ -25,7 +21,7 @@ const UpdatePriority = async (req, res) => {
   });
   //   console.log(cn);
   try {
-    const allowedIds = await Counter.find({}, ["_id"]);
+    const allowedIds = await BuySellTool.find({}, ["_id"]);
     let allowedUpdates = [];
 
     allowedIds.forEach((o) => allowedUpdates.push(o["_id"]));
@@ -42,18 +38,14 @@ const UpdatePriority = async (req, res) => {
     }
 
     cn.forEach(async (o) => {
-      await Counter.findOneAndUpdate(
+      await BuySellTool.findOneAndUpdate(
         { _id: o },
         { priority: req.body[o] - min }
       );
     });
-    cn = await Counter.find(
-      {},
-      ["title", "icon", "link", "color", "priority", "_id"],
-      {
-        sort: { priority: 1 },
-      }
-    );
+    cn = await BuySellTool.find({}, ["title", "icon", "priority"], {
+      sort: { priority: 1 },
+    });
     res.send(cn);
   } catch (e) {
     console.log(e);
@@ -63,16 +55,16 @@ const UpdatePriority = async (req, res) => {
 
 const Create = async (req, res) => {
   try {
-    let cn = await Counter.findOne({ title: req.body.title });
+    let cn = await BuySellTool.findOne({ title: req.body.title });
     if (!cn) {
-      cn = new Counter({ ...req.body });
-      await Counter.countDocuments({}, function (err, c) {
+      cn = new BuySellTool({ ...req.body });
+      await BuySellTool.countDocuments({}, function (err, c) {
         cn.priority = c;
       });
       cn = await cn.save();
       res.send(cn);
     } else {
-      res.status(400).send({ message: `Title '${req.body.title}' is in use!` });
+      res.status(400).send({ message: `Title '${cn.title}' is in use!` });
     }
   } catch (e) {
     console.log(e);
@@ -83,7 +75,7 @@ const Create = async (req, res) => {
 const Update = async (req, res) => {
   // req.params.id
   let updates = Object.keys(req.body);
-  const allowedUpdates = ["title", "count", "unit", "type"];
+  const allowedUpdates = ["title", "icon"];
   const isValidOperation = updates.every((update) =>
     allowedUpdates.includes(update)
   );
@@ -91,31 +83,33 @@ const Update = async (req, res) => {
     res.status(400).send();
   }
   try {
-    let cn = await Counter.findOne({ _id: req.params.id });
+    let cn = await BuySellTool.findOne({ _id: req.params.id });
     if (!cn) res.status(404).send();
     updates.forEach((update) => (cn[update] = req.body[update]));
     await cn.save();
     res.send(cn);
   } catch (e) {
     console.log(e);
-    res.status(400).send({ message: "Can't Update! Title in Use." });
+    res
+      .status(400)
+      .send({ message: "Can't Update! Title in Use.", status: 400 });
   }
 };
 
 const Remove = async (req, res) => {
   // req.params.id;
   try {
-    const removed = await Counter.findOneAndDelete({
+    const removed = await BuySellTool.findOneAndDelete({
       _id: req.params.id,
     });
     if (!removed) return res.status(400).send();
 
-    const collections = await Counter.find({
+    const collections = await BuySellTool.find({
       priority: { $gte: removed.priority },
     });
 
     for (const o in collections) {
-      await Counter.updateOne({ _id: o._id }, { priority: o.priority - 1 });
+      await BuySellTool.updateOne({ _id: o._id }, { priority: o.priority - 1 });
     }
 
     res.send(removed);

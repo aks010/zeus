@@ -47,7 +47,7 @@ const UpdatePriority = async (req, res) => {
 };
 
 const CreateBanner = async (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   if (!req.body.title) return res.status(401).send("Title Empty");
   try {
     let banner = await Banners.findOne({ title: req.body.title });
@@ -66,7 +66,7 @@ const CreateBanner = async (req, res) => {
     }
   } catch (e) {
     console.log(e);
-    res.send(e);
+    res.send({ message: e.message, status: e.code });
   }
 };
 
