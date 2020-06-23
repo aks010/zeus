@@ -1,5 +1,5 @@
-const BrowseCategory = require("../modals/banners/BrowseCategory");
-const BrowseCategoryItem = require("../modals/banners/BrowseCategoryItem");
+const BrowseCategory = require("../models/banners/BrowseCategory");
+const BrowseCategoryItem = require("../models/banners/BrowseCategoryItem");
 
 const List = async (req, res) => {
   // req.params.id : id of banner category

@@ -29,6 +29,7 @@ SimpleSchema.statics.sendData = async (ID, isBanner = true) => {
     for (const [key, value] of Object.entries(specs)) {
       if (value) reqSpecs.push(key);
     }
+    reqSpecs.push("priority");
     if (isBanner)
       data = await Simple.find({ bannerID: ID }, reqSpecs, {
         sort: { priority: 1 },

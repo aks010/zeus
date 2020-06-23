@@ -21,7 +21,7 @@ const ArticleSchema = new mongoose.Schema(
     rating: {
       type: Number,
     },
-    publishDate: {
+    eventDate: {
       type: Date,
       required: true,
     },
@@ -31,12 +31,10 @@ const ArticleSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      //   enum: ["car", "scooter", "bike"]
       lowercase: true,
     },
     categoryID: {
       type: String,
-      //   enum: ["news", "expertReview"],
       required: true,
     },
     priority: Number,
@@ -57,7 +55,7 @@ ArticleSchema.statics.sendData = async (categoryID) => {
         "link",
         "caption",
         "type",
-        "publishDate",
+        "eventDate",
         "priority",
         "price",
         "rating",
@@ -78,7 +76,7 @@ ArticleSchema.statics.sendData = async (categoryID) => {
           link: o["link"],
           caption: o["caption"],
           type: o["type"],
-          publishDate: o["publishDate"],
+          eventDate: o["eventDate"],
           priority: o["priority"],
         });
       }
@@ -91,6 +89,28 @@ ArticleSchema.statics.sendData = async (categoryID) => {
     return rs;
   } catch (e) {
     console.log("Article Statics Error!");
+    throw new Error(e.message);
+  }
+};
+
+ArticleSchema.statics.SetSpecification = async (categoryID) => {
+  try {
+    if (!categoryID || categoryID == "")
+      throw new Error("Cannot Set Specification without Category ID");
+    const specs = new Spec({
+      title: true,
+      imgLink: true,
+      link: true,
+      eventDate: true,
+      caption: true,
+      type: true,
+      price: true,
+      rating: true,
+      categoryID,
+    });
+    await specs.save();
+  } catch (e) {
+    console.log(e.message);
     throw new Error(e.message);
   }
 };

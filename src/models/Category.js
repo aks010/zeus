@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const autoIncrement = require("mongoose-auto-increment");
 const getDataFromModel = require("../shared/utils/helper");
 const Utils = require("../shared/utils/helper");
+const Spec = require("../models/Type/Spec");
 
 const CategorySchema = new mongoose.Schema(
   {
@@ -60,6 +61,7 @@ CategorySchema.pre("remove", async function (next) {
       category.childModel,
       category._id
     );
+    await Spec.deleteOne({ categoryID: category._id });
     if (!error) return next();
     else throw new Error(error);
   } catch (e) {

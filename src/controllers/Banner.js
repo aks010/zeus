@@ -1,30 +1,40 @@
-const Banners = require("../modals/Banner");
+const Banners = require("../models/Banner");
 
 const ListBanners = async (req, res) => {
   try {
     const banners = await Banners.find(
       {},
-      ["title", "priority", "link", "heading", "type"],
+      ["_id", "title", "link", "heading", "hasCategory", "model", "priority"],
       {
         sort: { priority: 1 },
       }
     );
-    res.send(banners);
+    res.send({
+      message: "Banners Fetched Successfully!",
+      status: 200,
+      data: banners,
+    });
   } catch (e) {
-    res.status(500).send(e);
+    res.status(500).send({ message: e.message, status: 500 });
   }
 };
 
 const ListAllBanners = async (req, res) => {
   try {
-    const banners = await Banners.sendData();
-    if (!banners.message) res.send(banners);
+    const banners = await Banners.sendData(); // TRY THROWING ERROR FROM FUNCTION CATCH
+    if (!banners.message)
+      res.send({
+        message: "Banners Fetched Successfully!",
+        data: banners,
+      });
     else throw Error(banners.message);
   } catch (e) {
-    console.log(e);
-    res.status(500).send(e);
+    console.log(e.message);
+    res.status(500).send(e.message);
   }
 };
+
+/// todo: UPDATING BANNER MODEL
 
 const UpdatePriority = async (req, res) => {
   let banners = Object.keys(req.body);
@@ -34,12 +44,16 @@ const UpdatePriority = async (req, res) => {
     });
     banners = await Banners.find(
       {},
-      ["title", "priority", "link", "heading", "type"],
+      ["_id", "title", "link", "heading", "hasCategory", "model", "priority"],
       {
         sort: { priority: 1 },
       }
     );
-    res.send(banners);
+    res.send({
+      message: "Priority Updated Successfully!",
+      status: 200,
+      data: banners,
+    });
   } catch (e) {
     console.log(e);
     res.status(500).send("Internal Server Error");
@@ -58,11 +72,12 @@ const CreateBanner = async (req, res) => {
         banner.priority = c;
       });
       banner = await banner.save();
-      res.send(banner);
+      res.send({ message: `Created Banner`, status: 201, data: banner });
     } else {
-      res
-        .status(412)
-        .send(`Banner with name ${req.body.title} already exists!`);
+      res.status(400).send({
+        message: `Banner with name ${req.body.title} already exists!`,
+        status: 400,
+      });
     }
   } catch (e) {
     console.log(e);
@@ -73,23 +88,24 @@ const CreateBanner = async (req, res) => {
 const RemoveBanner = async (req, res) => {
   console.log(req.params.id);
   try {
-    const removed_banner = await Banners.findOneAndDelete({
+    const banner = await Banners.findOne({
       _id: req.params.id,
     });
-    if (!removed_banner) return res.status(404).send();
+    if (!banner) return res.status(404).send();
+    await banner.remove();
 
     const banners = await Banners.find({
-      priority: { $gte: removed_banner.priority },
+      priority: { $gte: banner.priority },
     });
 
-    banners.forEach(async (o) => {
+    for (const o of banners) {
       await Banners.updateOne({ _id: o._id }, { priority: o.priority - 1 });
-    });
+    }
 
-    res.send(removed_banner);
+    res.send({ message: `Banner Removed Successfully!`, status: 200 });
   } catch (e) {
-    console.log(e);
-    res.status(500).send(e);
+    console.log(e.message);
+    res.status(500).send({ message: e.message, status: 500 });
   }
 };
 

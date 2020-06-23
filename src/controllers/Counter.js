@@ -1,4 +1,4 @@
-const Counter = require("../modals/banners/Counter");
+const Counter = require("../models/banners/Counter");
 
 const List = async (req, res) => {
   try {

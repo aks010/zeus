@@ -1,10 +1,61 @@
 const MODELS = require("../constants");
 
-const Article = require("../models/Type/Article");
-const Simple = require("../models/Type/Simple");
-const Testimonial = require("../models/Type/Testimonial");
-const Vehicle = require("../models/Type/Vehicle");
+const Article = require("../../models/Type/Article");
+const Simple = require("../../models/Type/Simple");
+const Testimonial = require("../../models/Type/Testimonial");
+const Vehicle = require("../../models/Type/Vehicle");
+const WithIcon = require("../../models/Type/WithIcon");
 
+const checkModelExistence = (model) => {
+  switch (model) {
+    case MODELS.ARTICLE:
+      return true;
+    case MODELS.SIMPLE:
+      return true;
+    case MODELS.VEHICLE:
+      return true;
+    case MODELS.TESTIMONIAL:
+      return true;
+    case MODELS.WITHICON:
+      return true;
+    default:
+      return false;
+  }
+};
+const setModelSpecification = async (model, ID) => {
+  try {
+    switch (model) {
+      case MODELS.ARTICLE: {
+        await Article.SetSpecification(ID); // array
+        break;
+      }
+      case MODELS.SIMPLE: {
+        await Simple.SetSpecification(ID);
+        break;
+      }
+      case MODELS.VEHICLE: {
+        await Vehicle.SetSpecification(ID);
+        break;
+      }
+      case MODELS.TESTIMONIAL: {
+        await Testimonial.SetSpecification(ID);
+        break;
+      }
+      case MODELS.WITHICON: {
+        await WithIcon.SetSpecification(ID);
+        break;
+      }
+      default:
+        throw Error(
+          `Requested Model: ${o["model"]}, is not in DB! Please Ensure Correct Model Names`
+        );
+    }
+    return { error: null };
+  } catch (e) {
+    console.log(e.message);
+    return { error: e.message };
+  }
+};
 const getDataFromModel = async (model, ID) => {
   try {
     let data;
@@ -23,6 +74,10 @@ const getDataFromModel = async (model, ID) => {
       }
       case MODELS.TESTIMONIAL: {
         data = await Testimonial.sendData(ID);
+        break;
+      }
+      case MODELS.WITHICON: {
+        data = await WithIcon.sendData(ID);
         break;
       }
       default:
@@ -56,6 +111,10 @@ const removeDataFromModel = async (model, categoryID) => {
         await Testimonial.deleteMany({ categoryID });
         break;
       }
+      case MODELS.WITHICON: {
+        await WithIcon.deleteMany({ categoryID });
+        break;
+      }
       default:
         throw Error(
           `Requested Model: ${o["model"]}, is not in DB! Please Ensure Correct Model Names! And Delete Again`
@@ -67,7 +126,7 @@ const removeDataFromModel = async (model, categoryID) => {
   }
 };
 
-const removeDataFromCategory = async (ID) => {
+const removeDataFromCategories = async (ID) => {
   /// ID = bannerID
   try {
     const categoryList = await Category.find({ bannerID }, ["childModel"]);
@@ -83,6 +142,8 @@ const removeDataFromCategory = async (ID) => {
 
 module.exports = {
   getDataFromModel,
+  setModelSpecification,
   removeDataFromModel,
-  removeDataFromCategory,
+  removeDataFromCategories,
+  checkModelExistence,
 };

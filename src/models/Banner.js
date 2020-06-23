@@ -12,11 +12,6 @@ const BannerSchema = new mongoose.Schema(
     priority: Number,
     link: String,
     heading: String,
-    type: {
-      required: true,
-      type: String,
-      enum: ["simple", "category", "description", "bannerlist"],
-    },
     model: {
       type: String,
       required: true,
@@ -33,7 +28,7 @@ const BannerSchema = new mongoose.Schema(
 
 BannerSchema.statics.sendData = async () => {
   try {
-    const bannerList = await Banner.find({}, ["model", "title"]);
+    const bannerList = await Banner.find({}, ["model", "title", "hasCategory"]);
     let res = [];
 
     for (const o of bannerList) {
@@ -68,7 +63,7 @@ BannerSchema.pre("remove", async function (next) {
   const banner = this;
   try {
     if (banner["hasCategory"]) {
-      const { error, message } = await Utils.removeDataFromCategory(
+      const { error, message } = await Utils.removeDataFromCategories(
         banner["_id"]
       );
       if (!error) next();

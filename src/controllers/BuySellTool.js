@@ -1,4 +1,4 @@
-const BuySellTool = require("../modals/banners/BuySellTool");
+const BuySellTool = require("../models/banners/BuySellTool");
 
 const List = async (req, res) => {
   try {
