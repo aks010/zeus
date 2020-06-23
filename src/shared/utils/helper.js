@@ -1,7 +1,6 @@
 const MODELS = require("../constants");
 
 const Article = require("../models/Type/Article");
-const BestVehicle = require("../models/Type/BestVehicle");
 const Simple = require("../models/Type/Simple");
 const Testimonial = require("../models/Type/Testimonial");
 const Vehicle = require("../models/Type/Vehicle");
@@ -24,10 +23,6 @@ const getDataFromModel = async (model, ID) => {
       }
       case MODELS.TESTIMONIAL: {
         data = await Testimonial.sendData(ID);
-        break;
-      }
-      case MODELS.BEST_VEHICLE: {
-        data = await BestVehicle.sendData(ID);
         break;
       }
       default:
@@ -59,10 +54,6 @@ const removeDataFromModel = async (model, categoryID) => {
       }
       case MODELS.TESTIMONIAL: {
         await Testimonial.deleteMany({ categoryID });
-        break;
-      }
-      case MODELS.BEST_VEHICLE: {
-        await BestVehicle.deleteMany({ categoryID });
         break;
       }
       default:

@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const autoIncrement = require("mongoose-auto-increment");
+const Category = require("./Category");
 const Utils = require("../shared/utils/helper");
 
 const BannerSchema = new mongoose.Schema(
@@ -36,21 +37,24 @@ BannerSchema.statics.sendData = async () => {
     let res = [];
 
     for (const o of bannerList) {
+      let data;
       if (o["hasCategory"]) {
+        data = await Category.sendData(o["_id"]);
       } else {
-        let { error, data } = await Utils.getDataFromModel(
+        let { error, response } = await Utils.getDataFromModel(
           o["model"],
           o["_id"]
         ); /// TEST FOR ERROR THROW FROM FUNCTION
         if (error != null) throw new Error(error);
-        let obj = {};
-        obj.items = data; // array
-        obj.cID = o["_id"];
-        obj.link = o["link"];
-        obj.title = o["title"];
-        obj.priority = o["priority"];
-        res.push(obj);
+        data = response;
       }
+      let obj = {};
+      obj.items = data; // array
+      obj.cID = o["_id"];
+      obj.link = o["link"];
+      obj.title = o["title"];
+      obj.priority = o["priority"];
+      res.push(obj);
     }
     return res;
   } catch (e) {

@@ -68,7 +68,7 @@ ArticleSchema.statics.sendData = async (categoryID) => {
     let rs = [];
     if (
       cn.length() != 0 &&
-      (cn[0].price === null || cn[0].price === undefined)
+      (cn[0].price === null || cn[0].price === undefined) // banner != news...
     ) {
       for (const o of cn) {
         rs[o["type"]].push({
