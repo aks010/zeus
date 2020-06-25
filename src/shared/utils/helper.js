@@ -1,7 +1,7 @@
 const MODELS = require("../constants");
 
 const Article = require("../../models/Type/Article");
-const Simple = require("../../models/Type/Simple");
+const Custom = require("../../models/Type/Custom");
 const Testimonial = require("../../models/Type/Testimonial");
 const Vehicle = require("../../models/Type/Vehicle");
 const WithIcon = require("../../models/Type/WithIcon");
@@ -11,7 +11,7 @@ const checkModelExistence = (model) => {
   switch (model) {
     case MODELS.ARTICLE:
       return true;
-    case MODELS.SIMPLE:
+    case MODELS.CUSTOM:
       return true;
     case MODELS.VEHICLE:
       return true;
@@ -33,8 +33,8 @@ const setModelSpecification = async (model, ID) => {
         await Article.SetSpecification(ID); // array
         break;
       }
-      case MODELS.SIMPLE: {
-        await Simple.SetSpecification(ID);
+      case MODELS.CUSTOM: {
+        await Custom.SetSpecification(ID);
         break;
       }
       case MODELS.VEHICLE: {
@@ -72,8 +72,8 @@ const getDataFromModel = async (model, ID) => {
         data = await Article.sendData(ID); // array
         break;
       }
-      case MODELS.SIMPLE: {
-        data = await Simple.sendData(ID);
+      case MODELS.CUSTOM: {
+        data = await Custom.sendData(ID);
         break;
       }
       case MODELS.VEHICLE: {
@@ -110,8 +110,8 @@ const removeDataFromModel = async (model, categoryID) => {
         await Article.deleteMany({ categoryID }); // array
         break;
       }
-      case MODELS.SIMPLE: {
-        await Simple.deleteMany({ categoryID });
+      case MODELS.CUSTOM: {
+        await Custom.deleteMany({ categoryID });
         break;
       }
       case MODELS.VEHICLE: {

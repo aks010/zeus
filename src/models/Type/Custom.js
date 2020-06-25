@@ -1,42 +1,19 @@
 const mongoose = require("mongoose");
 const autoIncrement = require("mongoose-auto-increment");
 const Spec = require("./Spec");
-const ArticleSchema = new mongoose.Schema(
+const CustomSchema = new mongoose.Schema(
   {
-    title: {
-      type: String,
-      required: true,
-    },
-    imgLink: {
-      type: String,
-      required: true,
-    },
-    link: {
-      type: String,
-      required: true,
-    },
-    price: {
-      type: Number,
-    },
-    rating: {
-      type: Number,
-    },
-    eventDate: {
-      type: Date,
-      required: true,
-    },
-    caption: {
-      type: String,
-      required: true,
-    },
-    type: {
-      type: String,
-      lowercase: true,
-    },
-    eID: {
-      type: mongoose.Types.ObjectId,
-      required: true,
-    },
+    title: String,
+    imgLink: String,
+    link: String,
+    icon: String,
+    color: String,
+    count: Number,
+    price: Number,
+    eventDate: Date,
+    caption: String,
+    type: String,
+    eID: mongoose.Types.ObjectId,
     priority: Number,
   },
   {
@@ -44,8 +21,7 @@ const ArticleSchema = new mongoose.Schema(
   }
 );
 
-ArticleSchema.statics.sendData = async (eID) => {
-  /// UPDATE THIS USING SPECIFICATION
+CustomSchema.statics.sendData = async (ID) => {
   try {
     let cn = await Spec.findOne({ eID }, ["-createdAt", "-updatedAt"], {
       lean: true,
@@ -56,7 +32,7 @@ ArticleSchema.statics.sendData = async (eID) => {
       if (value === true) resSpecs.push(key);
     }
 
-    const cns = await Article.find({ eID }, resSpecs, {
+    const cns = await Custom.find({ eID }, resSpecs, {
       sort: { priority: 1 },
     });
     let data;
@@ -76,30 +52,17 @@ ArticleSchema.statics.sendData = async (eID) => {
     }
     return data;
   } catch (e) {
-    console.log("Article Statics Error");
+    console.log("Simple Statics Error!");
     throw new Error(e.message);
   }
 };
 
-ArticleSchema.statics.SetSpecification = async (eID) => {
+CustomSchema.statics.SetSpecification = async (eID) => {
   /// UPDATE FOR USE IN BANNER WITHOUT CATEGORY USING ISBANNER FIELD
   try {
     if (!eID || eID == "")
       throw new Error("Cannot Set Specification without ID");
-    const specs = new Spec({
-      title: true,
-      imgLink: true,
-      link: true,
-      eventDate: true,
-      caption: true,
-      type: true,
-      price: true,
-      rating: true,
-      eID,
-      icon: false,
-      color: false,
-      count: false,
-    });
+    const specs = new Spec({ eID });
     await specs.save();
   } catch (e) {
     console.log(e.message);
@@ -107,7 +70,7 @@ ArticleSchema.statics.SetSpecification = async (eID) => {
   }
 };
 
-ArticleSchema.pre("remove", async (next) => {
+CustomSchema.pre("remove", async (next) => {
   const article = this;
   try {
     let cns;
@@ -116,19 +79,19 @@ ArticleSchema.pre("remove", async (next) => {
     });
 
     if (specs["type"] == true) {
-      cns = await Article.find({
+      cns = await Custom.find({
         eID: cn.eID,
         type: cn.type,
         priority: { $gte: cn.priority },
       });
     } else {
-      cns = await Article.find({
+      cns = await Custom.find({
         eID: cn.eID,
         priority: { $gte: cn.priority },
       });
     }
     for (const o of cns) {
-      await Article.updateOne({ _id: o._id }, { priority: o.priority - 1 });
+      await Custom.updateOne({ _id: o._id }, { priority: o.priority - 1 });
     }
     return next();
   } catch (e) {
@@ -138,7 +101,7 @@ ArticleSchema.pre("remove", async (next) => {
 });
 
 autoIncrement.initialize(mongoose.connection);
-ArticleSchema.plugin(autoIncrement.plugin, "Article");
+CustomSchema.plugin(autoIncrement.plugin, "Custom");
 
-var Article = mongoose.model("Article", ArticleSchema);
-module.exports = Article;
+var Custom = mongoose.model("Custom", CustomSchema);
+module.exports = Custom;

@@ -8,6 +8,7 @@ router.use("/buyselltools", require("./buySellTool"));
 router.use("/browsecategory", require("./browseCategory"));
 router.use("/browsecategoryitem", require("./browseCategoryItem"));
 router.use("/articles", require("./articles"));
+router.use("/custom", require("./custom"));
 router.use("/category", require("./category"));
 
 module.exports = router;

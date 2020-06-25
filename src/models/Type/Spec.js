@@ -6,45 +6,46 @@ const SpecSchema = new mongoose.Schema(
     title: {
       type: Boolean,
       required: true,
-      default: false,
+      default: true,
     },
     imgLink: {
       type: Boolean,
       required: true,
-      default: false,
+      default: true,
     },
     type: {
       type: Boolean,
       required: true,
-      default: false,
+      default: true,
     },
     link: {
       type: Boolean,
       required: true,
-      default: false,
+      default: true,
     },
     price: {
       type: Boolean,
       required: true,
-      default: false,
+      default: true,
     },
     rating: {
       type: Boolean,
       required: true,
-      default: false,
+      default: true,
     },
     eventDate: {
       type: Boolean,
       required: true,
-      default: false,
+      default: true,
     },
     caption: {
       type: Boolean,
       required: true,
-      default: false,
+      default: true,
     },
     eID: {
       type: mongoose.Types.ObjectId,
+      required: true,
       default: null,
     },
     priority: {

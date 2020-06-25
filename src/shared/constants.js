@@ -1,5 +1,5 @@
 const ARTICLE = "Article";
-const SIMPLE = "Simple";
+const CUSTOM = "Custom";
 const TESTIMONIAL = "Testimonial";
 const VEHICLE = "Vehicle";
 const WITHICON = "WithIcon";
@@ -8,7 +8,7 @@ const CATEGORY = "Category";
 module.exports = {
   ARTICLE,
   CATEGORY,
-  SIMPLE,
+  CUSTOM,
   TESTIMONIAL,
   VEHICLE,
   WITHICON,
