@@ -24,20 +24,32 @@ const ListCategories = async (req, res) => {
     res.status(500).send({ message: e.message, status: 500 });
   }
 };
-/// LIST ITEMS OF BANNER CATEGORY /:bID/:cID
+/// LIST ITEMS CATEGORY /:id
 const ListCategoryItems = async (req, res) => {
-  if (!req.params.bID || req.params.cID)
+  if (!req.params.id)
     return res.status(412).send({
-      message: `Please provide required banner id and category id`,
+      message: `Please provide category id`,
       status: 412,
     });
 
   try {
-    const o = await Category.find(
-      { bannerID: req.params.bID, categoryID: req.params.cID },
-      ["childModel", "title"]
-    );
-    let { error, data } = await getDataFromModel(o["childModel"], o["_id"]); /// TEST FOR ERROR THROW FROM FUNCTION
+    const o = await Category.findOne({ _id: req.params.id }, [
+      "childModel",
+      "title",
+    ]);
+    if (!o) {
+      return res
+        .status(404)
+        .send({ message: "Requested category does not exist", status: 404 });
+    }
+    console.log("HERER");
+    console.log(o);
+    console.log(o["_id"]);
+    let { error, data } = await Utils.getDataFromModel(
+      o["childModel"],
+      o["_id"],
+      false
+    ); /// TEST FOR ERROR THROW FROM FUNCTION
     if (error != null) throw new Error(error);
     let obj = {};
     obj.items = data; // array
@@ -67,23 +79,66 @@ const ListAll = async (req, res) => {
       "childModel",
       "title",
     ]);
-    let res = [];
+    let rs = [];
 
     for (const o of categoryList) {
-      let { error, data } = await getDataFromModel(o["childModel"], o["_id"]); /// TEST FOR ERROR THROW FROM FUNCTION
-      if (error != null) throw new Error(error);
+      let { error, data } = await Utils.getDataFromModel(
+        o["childModel"],
+        o["_id"]
+      ); /// TEST FOR ERROR THROW FROM FUNCTION
+      console.log(error);
+      if (error != undefined) throw new Error(error);
       let obj = {};
       obj.items = data; // array
       obj.cID = o["_id"];
       obj.link = o["link"];
       obj.title = o["title"];
       obj.priority = o["priority"];
-      res.push(obj);
+      rs.push(obj);
     }
-    return res;
+    return res.send({
+      message: "Banner Data Fetched Successfully!",
+      status: 200,
+      data: rs,
+    });
   } catch (e) {
     console.log(e);
-    return { message: e.message, status: 500 };
+    return res.status(500).send({ message: e.message, status: 500 });
+  }
+};
+
+/// UPDATE CATEGORY /:id
+
+const UpdateCategory = async (req, res) => {
+  if (!req.params.id)
+    return res
+      .status(412)
+      .send({ message: `Please provide item id`, status: 412 });
+
+  try {
+    let updates = Object.keys(req.body);
+    let cn = await Category.findOne({ _id: req.params.id });
+
+    const allowedUpdates = ["title", "link"];
+
+    const isValidOperation = updates.every((update) =>
+      allowedUpdates.includes(update)
+    );
+    if (!isValidOperation) {
+      res.status(400).send();
+    }
+
+    updates.forEach((update) => (cn[update] = req.body[update]));
+    await cn.save();
+
+    return res.send({
+      message: "Updated Item Successfully!",
+      status: 200,
+      data: cn,
+    });
+  } catch (e) {
+    console.log(e.message);
+    return res.status(500).send({ message: e.message, status: e.code });
   }
 };
 
@@ -101,10 +156,10 @@ const UpdatePriority = async (req, res) => {
   });
 
   try {
-    const allowedIds = await BrowseCategoryItem.find(
-      { bannerID: req.params.id },
-      ["_id"]
-    );
+    const allowedIds = await Category.find({ bannerID: req.params.id }, [
+      "_id",
+    ]);
+    // console.log()
     let allowedUpdates = [];
 
     allowedIds.forEach((o) => allowedUpdates.push(o["_id"]));
@@ -127,7 +182,7 @@ const UpdatePriority = async (req, res) => {
     }
 
     for (const o of cn) {
-      await BrowseCategoryItem.findOneAndUpdate(
+      await Category.findOneAndUpdate(
         { _id: o },
         { priority: req.body[o] - min }
       );
@@ -143,13 +198,14 @@ const UpdatePriority = async (req, res) => {
 const CreateCategory = async (req, res) => {
   if (!req.params.id || req.body.title == "" || req.body.title == null)
     return res.status(412).send({
-      message: `Please provide ${
-        !req.prams.id ? "banner id" : "category title"
-      }`,
+      message: `Please provide banner id`,
       status: 412,
     });
   try {
-    let category = await Category.findOne({ title: req.body.title });
+    let category = await Category.findOne({
+      title: req.body.title,
+      bannerID: req.params.id,
+    });
     if (!category) {
       // CHECK EXISTENCE OF CHILD MODEL
       if (!Utils.checkModelExistence(req.body.childModel))
@@ -158,6 +214,7 @@ const CreateCategory = async (req, res) => {
           status: 400,
         });
       category = new Category({ ...req.body });
+      category.bannerID = req.params.id;
       await Category.countDocuments({ bannerID: req.params.id }, function (
         err,
         c
@@ -222,6 +279,7 @@ module.exports = {
   ListCategories,
   ListCategoryItems,
   CreateCategory,
+  UpdateCategory,
   UpdatePriority,
   RemoveCategory,
 };

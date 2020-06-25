@@ -11,7 +11,6 @@ const BannerSchema = new mongoose.Schema(
     },
     priority: Number,
     link: String,
-    heading: String,
     model: {
       type: String,
       required: true,

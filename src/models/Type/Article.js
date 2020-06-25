@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const autoIncrement = require("mongoose-auto-increment");
-
+const Spec = require("./Spec");
 const ArticleSchema = new mongoose.Schema(
   {
     title: {
@@ -44,7 +44,8 @@ const ArticleSchema = new mongoose.Schema(
   }
 );
 
-ArticleSchema.statics.sendData = async (categoryID) => {
+ArticleSchema.statics.sendData = async (categoryID, isBanner = false) => {
+  /// UPDATE THIS USING SPECIFICATION
   try {
     const cn = await Article.find(
       { categoryID },
@@ -65,7 +66,7 @@ ArticleSchema.statics.sendData = async (categoryID) => {
 
     let rs = [];
     if (
-      cn.length() != 0 &&
+      cn.length != 0 &&
       (cn[0].price === null || cn[0].price === undefined) // banner != news...
     ) {
       for (const o of cn) {
@@ -85,7 +86,8 @@ ArticleSchema.statics.sendData = async (categoryID) => {
         rs[o["type"]].push(o);
       }
     }
-
+    console.log("RESFEF");
+    console.log(rs);
     return rs;
   } catch (e) {
     console.log("Article Statics Error!");
@@ -93,7 +95,11 @@ ArticleSchema.statics.sendData = async (categoryID) => {
   }
 };
 
-ArticleSchema.statics.SetSpecification = async (categoryID) => {
+ArticleSchema.statics.SetSpecification = async (
+  categoryID,
+  isBanner = false
+) => {
+  /// UPDATE FOR USE IN BANNER WITHOUT CATEGORY USING ISBANNER FIELD
   try {
     if (!categoryID || categoryID == "")
       throw new Error("Cannot Set Specification without Category ID");

@@ -45,12 +45,12 @@ const SpecSchema = new mongoose.Schema(
     },
     categoryID: {
       type: Number,
-      required: true,
+      // required: true,
       default: null,
     },
     bannerID: {
       type: Number,
-      required: true,
+      // required: true,
       default: null,
     },
     isBanner: {

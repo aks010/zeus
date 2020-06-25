@@ -1,10 +1,11 @@
 const Banners = require("../models/Banner");
+const Utils = require("../shared/utils/helper");
 
 const ListBanners = async (req, res) => {
   try {
     const banners = await Banners.find(
       {},
-      ["_id", "title", "link", "heading", "hasCategory", "model", "priority"],
+      ["_id", "title", "link", "hasCategory", "model", "priority"],
       {
         sort: { priority: 1 },
       }
@@ -26,6 +27,7 @@ const ListAllBanners = async (req, res) => {
       res.send({
         message: "Banners Fetched Successfully!",
         data: banners,
+        status: 200,
       });
     else throw Error(banners.message);
   } catch (e) {
@@ -44,7 +46,7 @@ const UpdatePriority = async (req, res) => {
     });
     banners = await Banners.find(
       {},
-      ["_id", "title", "link", "heading", "hasCategory", "model", "priority"],
+      ["_id", "title", "link", "hasCategory", "model", "priority"],
       {
         sort: { priority: 1 },
       }
@@ -68,11 +70,23 @@ const CreateBanner = async (req, res) => {
 
     if (!banner) {
       banner = new Banners({ ...req.body });
+      if (banner.model == "Category") banner.hasCategory = true;
+      if (banner.hasCategory == true && banner.model != "Category") {
+        return res.status(400).send({
+          message:
+            "Cannot Set 'hasCategory' true for non-Category Model Banner!",
+        });
+      }
       await Banners.countDocuments({}, function (err, c) {
         banner.priority = c;
       });
       banner = await banner.save();
-      res.send({ message: `Created Banner`, status: 201, data: banner });
+      await Utils.setModelSpecification(req.body.model, banner._id, true);
+      res.send({
+        message: `Created Banner`,
+        status: 201,
+        data: banner,
+      });
     } else {
       res.status(400).send({
         message: `Banner with name ${req.body.title} already exists!`,

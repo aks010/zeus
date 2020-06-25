@@ -5,6 +5,7 @@ const Simple = require("../../models/Type/Simple");
 const Testimonial = require("../../models/Type/Testimonial");
 const Vehicle = require("../../models/Type/Vehicle");
 const WithIcon = require("../../models/Type/WithIcon");
+const Category = require("../../models/Category");
 
 const checkModelExistence = (model) => {
   switch (model) {
@@ -18,82 +19,92 @@ const checkModelExistence = (model) => {
       return true;
     case MODELS.WITHICON:
       return true;
+    case MODELS.CATEGORY:
+      return true;
     default:
       return false;
   }
 };
-const setModelSpecification = async (model, ID) => {
+const setModelSpecification = async (model, ID, isBanner = false) => {
   try {
+    console.log("ID: " + ID);
     switch (model) {
       case MODELS.ARTICLE: {
-        await Article.SetSpecification(ID); // array
+        await Article.SetSpecification(ID, isBanner); // array
         break;
       }
       case MODELS.SIMPLE: {
-        await Simple.SetSpecification(ID);
+        await Simple.SetSpecification(ID, isBanner);
         break;
       }
       case MODELS.VEHICLE: {
-        await Vehicle.SetSpecification(ID);
+        await Vehicle.SetSpecification(ID, isBanner);
         break;
       }
       case MODELS.TESTIMONIAL: {
-        await Testimonial.SetSpecification(ID);
+        await Testimonial.SetSpecification(ID, isBanner);
         break;
       }
       case MODELS.WITHICON: {
-        await WithIcon.SetSpecification(ID);
+        await WithIcon.SetSpecification(ID, isBanner);
+        break;
+      }
+      case MODELS.CATEGORY: {
         break;
       }
       default:
         throw Error(
-          `Requested Model: ${o["model"]}, is not in DB! Please Ensure Correct Model Names`
+          `Requested Model: ${model}, is not in DB! Please Ensure Correct Model Names`
         );
     }
     return { error: null };
   } catch (e) {
     console.log(e.message);
-    return { error: e.message };
+    throw new Error(e.message);
   }
 };
-const getDataFromModel = async (model, ID) => {
+const getDataFromModel = async (model, ID, isBanner = false) => {
   try {
     let data;
+    console.log(model);
     switch (model) {
       case MODELS.ARTICLE: {
-        data = await Article.sendData(ID); // array
+        data = await Article.sendData(ID, isBanner); // array
         break;
       }
       case MODELS.SIMPLE: {
-        data = await Simple.sendData(ID);
+        data = await Simple.sendData(ID, isBanner);
         break;
       }
       case MODELS.VEHICLE: {
-        data = await Vehicle.sendData(ID);
+        data = await Vehicle.sendData(ID, isBanner);
         break;
       }
       case MODELS.TESTIMONIAL: {
-        data = await Testimonial.sendData(ID);
+        data = await Testimonial.sendData(ID, isBanner);
         break;
       }
       case MODELS.WITHICON: {
-        data = await WithIcon.sendData(ID);
+        data = await WithIcon.sendData(ID, isBanner);
         break;
       }
       default:
         throw Error(
-          `Requested Model: ${o["model"]}, is not in DB! Please Ensure Correct Model Names`
+          `Requested Model: ${model}, is not in DB! Please Ensure Correct Model Names`
         );
     }
-    return { error: null, data: data };
+    return { error: undefined, data: data };
   } catch (e) {
     console.log(e.message);
     return { error: e.message, data: undefined };
   }
 };
 
+// FIX FOR ISBANNER = true
+
 const removeDataFromModel = async (model, categoryID) => {
   try {
+    console.log("ENTERNED");
     switch (model) {
       case MODELS.ARTICLE: {
         await Article.deleteMany({ categoryID }); // array
@@ -117,7 +128,7 @@ const removeDataFromModel = async (model, categoryID) => {
       }
       default:
         throw Error(
-          `Requested Model: ${o["model"]}, is not in DB! Please Ensure Correct Model Names! And Delete Again`
+          `Requested Model: ${model}, is not in DB! Please Ensure Correct Model Names! And Delete Again`
         );
     }
     return { error: null, message: "Successfully Removed Model!" };
@@ -128,8 +139,10 @@ const removeDataFromModel = async (model, categoryID) => {
 
 const removeDataFromCategories = async (ID) => {
   /// ID = bannerID
+  console.log("asfasf");
   try {
-    const categoryList = await Category.find({ bannerID }, ["childModel"]);
+    const categoryList = await Category.find({ bannerID: ID }, ["childModel"]);
+    console.log("asfasfasd");
     for (const o of categoryList) {
       await o.remove();
     }
