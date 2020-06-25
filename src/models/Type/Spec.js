@@ -43,20 +43,9 @@ const SpecSchema = new mongoose.Schema(
       required: true,
       default: false,
     },
-    categoryID: {
-      type: Number,
-      // required: true,
+    eID: {
+      type: mongoose.Types.ObjectId,
       default: null,
-    },
-    bannerID: {
-      type: Number,
-      // required: true,
-      default: null,
-    },
-    isBanner: {
-      type: Boolean,
-      default: false,
-      required: true,
     },
     priority: {
       type: Boolean,

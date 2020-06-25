@@ -40,25 +40,48 @@ const ListAllBanners = async (req, res) => {
 
 const UpdatePriority = async (req, res) => {
   let banners = Object.keys(req.body);
+
+  let cn = Object.keys(req.body);
+  let min = 1000000;
+  cn.forEach((o) => {
+    min = min < parseInt(req.body[o]) ? min : parseInt(req.body[o]);
+  });
   try {
-    banners.forEach(async (o) => {
-      await Banners.findOneAndUpdate({ title: o }, { priority: req.body[o] });
-    });
-    banners = await Banners.find(
-      {},
-      ["_id", "title", "link", "hasCategory", "model", "priority"],
-      {
-        sort: { priority: 1 },
-      }
+    const allowedIds = await Banners.find({}, ["_id"]);
+    // console.log()
+    let allowedUpdates = [];
+
+    allowedIds.forEach((o) => allowedUpdates.push(o["_id"].toString()));
+    let isValidOperation = cn.every((update) =>
+      allowedUpdates.includes(update)
     );
-    res.send({
-      message: "Priority Updated Successfully!",
-      status: 200,
-      data: banners,
-    });
+    // console.log(allowedUpdates);
+    // console.log(cn);
+    if (!isValidOperation) {
+      return res.status(400).send({
+        message: "Incomplete list of items for setting priority",
+        code: 400,
+      });
+    }
+    isValidOperation = allowedUpdates.every((update) => cn.includes(update));
+    // console.log(allowedUpdates);
+    if (!isValidOperation) {
+      return res.status(400).send({
+        message: "Incomplete list of items for setting priority",
+        code: 400,
+      });
+    }
+
+    for (const o of cn) {
+      await Banners.findOneAndUpdate(
+        { _id: o },
+        { priority: req.body[o] - min }
+      );
+    }
+    res.send({ message: "Successfully Updated Priority!", status: 200 });
   } catch (e) {
-    console.log(e);
-    res.status(500).send("Internal Server Error");
+    console.log(e.message);
+    res.status(500).json({ message: e.message, status: e.code });
   }
 };
 
@@ -105,7 +128,10 @@ const RemoveBanner = async (req, res) => {
     const banner = await Banners.findOne({
       _id: req.params.id,
     });
-    if (!banner) return res.status(404).send();
+    if (!banner)
+      return res
+        .status(400)
+        .send({ message: "Banner does not exist!", status: 400 });
     await banner.remove();
 
     const banners = await Banners.find({

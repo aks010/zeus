@@ -21,8 +21,8 @@ const WithIconSchema = new mongoose.Schema(
       type: String,
       required: [true, "Icon Link cannot be empty!"],
     },
-    bannerID: {
-      type: Number,
+    eID: {
+      type: mongoose.Types.ObjectId,
       required: true,
     },
   },
@@ -31,9 +31,9 @@ const WithIconSchema = new mongoose.Schema(
   }
 );
 
-WithIconSchema.statics.sendData = async (bannerID) => {
+WithIconSchema.statics.sendData = async (eID) => {
   try {
-    const cns = await MicroService.find({ bannerID }, [
+    const cns = await MicroService.find({ eID }, [
       "title",
       "priority",
       "link",

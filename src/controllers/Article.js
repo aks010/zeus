@@ -12,8 +12,8 @@ const List = async (req, res) => {
       .send({ message: `Please provide banner id`, status: 400 });
   try {
     let cn = await Spec.findOne(
-      { categoryID: req.params.id },
-      ["-bannerID", "-isBanner"],
+      { eID: req.params.id },
+      ["-createdAt", "-updatedAt"],
       { lean: true }
     );
     if (!cn)
@@ -25,7 +25,7 @@ const List = async (req, res) => {
       if (value === true) resSpecs.push(key);
     }
 
-    const cns = await Article.find({ categoryID: req.params.id }, resSpecs, {
+    const cns = await Article.find({ eID: req.params.id }, resSpecs, {
       sort: { priority: 1 },
     });
     let data;
@@ -64,8 +64,8 @@ const GetItem = async (req, res) => {
 
   try {
     let cn = await Spec.findOne(
-      { categoryID: req.params.cID },
-      ["-isBanner", "-bannerID", "-createdAt", "-updatedAt"],
+      { eID: req.params.cID },
+      ["-createdAt", "-updatedAt"],
       { lean: true }
     );
     if (!cn)
@@ -92,11 +92,9 @@ const ListSpecification = async (req, res) => {
       .send({ message: `Please provide Category id`, status: 412 });
 
   try {
-    const specs = await Spec.findOne(
-      { categoryID: req.params.id },
-      ["-priority"],
-      { lean: true }
-    );
+    const specs = await Spec.findOne({ eID: req.params.id }, ["-priority"], {
+      lean: true,
+    });
     if (!specs)
       return res
         .status(500)
@@ -152,10 +150,7 @@ const UpdateSpecificaiton = async (req, res) => {
     });
   }
   try {
-    let cn = await Spec.findOne({ categoryID: req.params.id }, [
-      "-isBanner",
-      "-bannerID",
-    ]);
+    let cn = await Spec.findOne({ eID: req.params.id });
     if (!cn)
       return res
         .status(500)
@@ -197,7 +192,7 @@ const UpdatePriority = async (req, res) => {
   });
 
   try {
-    const specs = await Spec.findOne({ categoryID: req.params.id }, ["type"], {
+    const specs = await Spec.findOne({ eID: req.params.id }, ["type"], {
       lean: true,
     });
     if (!specs)
@@ -212,12 +207,12 @@ const UpdatePriority = async (req, res) => {
           .status(412)
           .send({ message: `Please provide Item type`, status: 412 });
       allowedIds = await Article.find(
-        { categoryID: req.params.id, type: req.params.type },
+        { eID: req.params.id, type: req.params.type },
         ["_id"],
         { lean: true }
       );
     } else {
-      allowedIds = await Article.find({ categoryID: req.params.id }, ["_id"]);
+      allowedIds = await Article.find({ eID: req.params.id }, ["_id"]);
     }
     let allowedUpdates = [];
     // console.log(allowedIds);
@@ -271,12 +266,10 @@ const UpdateItem = async (req, res) => {
       return res
         .status(400)
         .send({ message: "Item does not exist!", status: 400 });
-    console.log(cn["categoryID"]);
-    let specs = await Spec.findOne(
-      { categoryID: cn["categoryID"] },
-      ["-priority", "-bannerID", "-isBanner"],
-      { lean: true }
-    );
+    console.log(cn["eID"]);
+    let specs = await Spec.findOne({ eID: cn["eID"] }, ["-priority"], {
+      lean: true,
+    });
     if (!specs)
       return res
         .status(500)
@@ -303,16 +296,16 @@ const UpdateItem = async (req, res) => {
       isDuplicate = await Article.findOne({
         title: cn.title,
         type: cn.type,
-        categoryID: cn.categoryID,
+        eID: cn.eID,
       });
     } else {
       isDuplicate = await Article.findOne({
         title: cn.title,
-        categoryID: cn.categoryID,
+        eID: cn.eID,
       });
     }
 
-    if (isDuplicate && isDuplicate["categoryID"] != cn.categoryID)
+    if (isDuplicate && isDuplicate["eID"] != cn.eID)
       return res.status(400).send({ message: "Title is in use!", status: 400 });
     await cn.save();
 
@@ -338,8 +331,8 @@ const Create = async (req, res) => {
   try {
     let cn;
     const specs = await Spec.findOne(
-      { categoryID: req.params.id },
-      ["-isBanner", "-bannerID", "-createdAt", "-updatedAt", "-priority"],
+      { eID: req.params.id },
+      ["-createdAt", "-updatedAt", "-priority"],
       {
         lean: true,
       }
@@ -357,13 +350,13 @@ const Create = async (req, res) => {
 
       cn = await Article.findOne({
         title: req.body.title,
-        categoryID: req.params.id,
+        eID: req.params.id,
         type: req.params.type,
       });
     } else {
       cn = await Article.findOne({
         title: req.body.title,
-        categoryID: req.params.id,
+        eID: req.params.id,
       });
     }
 
@@ -371,20 +364,17 @@ const Create = async (req, res) => {
       cn = new Article({ ...req.body });
       if (specs["type"] == true) {
         await Article.countDocuments(
-          { categoryID: req.params.id, type: req.params.type },
+          { eID: req.params.id, type: req.params.type },
           function (err, c) {
             cn.priority = c;
           }
         );
       } else {
-        await Article.countDocuments({ categoryID: req.params.id }, function (
-          err,
-          c
-        ) {
+        await Article.countDocuments({ eID: req.params.id }, function (err, c) {
           cn.priority = c;
         });
       }
-      cn.categoryID = req.params.id;
+      cn.eID = req.params.id;
       if (specs["type"]) cn.type = req.params.type;
       cn = await cn.save();
       return res.send({
@@ -423,13 +413,13 @@ const Remove = async (req, res) => {
     let cns;
     if (cn.type != null) {
       cns = await Article.find({
-        categoryID: cn.categoryID,
+        eID: cn.eID,
         type: cn.type,
         priority: { $gte: cn.priority },
       });
     } else {
       cns = await Article.find({
-        categoryID: cn.categoryID,
+        eID: cn.eID,
         priority: { $gte: cn.priority },
       });
     }
@@ -453,7 +443,7 @@ const RemoveType = async (req, res) => {
     });
   try {
     const cn = await Article.deleteMany({
-      categoryID: req.params.cID,
+      eID: req.params.cID,
       type: req.params.type,
     });
     console.log(cn);

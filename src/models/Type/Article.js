@@ -33,8 +33,8 @@ const ArticleSchema = new mongoose.Schema(
       type: String,
       lowercase: true,
     },
-    categoryID: {
-      type: String,
+    eID: {
+      type: mongoose.Types.ObjectId,
       required: true,
     },
     priority: Number,
@@ -44,11 +44,11 @@ const ArticleSchema = new mongoose.Schema(
   }
 );
 
-ArticleSchema.statics.sendData = async (categoryID, isBanner = false) => {
+ArticleSchema.statics.sendData = async (eID, isBanner = false) => {
   /// UPDATE THIS USING SPECIFICATION
   try {
     const cn = await Article.find(
-      { categoryID },
+      { eID },
       [
         "_id",
         "title",
@@ -95,14 +95,11 @@ ArticleSchema.statics.sendData = async (categoryID, isBanner = false) => {
   }
 };
 
-ArticleSchema.statics.SetSpecification = async (
-  categoryID,
-  isBanner = false
-) => {
+ArticleSchema.statics.SetSpecification = async (eID) => {
   /// UPDATE FOR USE IN BANNER WITHOUT CATEGORY USING ISBANNER FIELD
   try {
-    if (!categoryID || categoryID == "")
-      throw new Error("Cannot Set Specification without Category ID");
+    if (!eID || eID == "")
+      throw new Error("Cannot Set Specification without ID");
     const specs = new Spec({
       title: true,
       imgLink: true,
@@ -112,7 +109,7 @@ ArticleSchema.statics.SetSpecification = async (
       type: true,
       price: true,
       rating: true,
-      categoryID,
+      eID,
     });
     await specs.save();
   } catch (e) {
@@ -126,7 +123,7 @@ ArticleSchema.pre("remove", async (next) => {
   try {
     const cn = await Article.find(
       {
-        categoryID: article["categoryID"],
+        eID: article["eID"],
         priority: { $gte: article.priority },
         type: article.type,
       },

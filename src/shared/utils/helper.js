@@ -25,28 +25,28 @@ const checkModelExistence = (model) => {
       return false;
   }
 };
-const setModelSpecification = async (model, ID, isBanner = false) => {
+const setModelSpecification = async (model, ID) => {
   try {
     console.log("ID: " + ID);
     switch (model) {
       case MODELS.ARTICLE: {
-        await Article.SetSpecification(ID, isBanner); // array
+        await Article.SetSpecification(ID); // array
         break;
       }
       case MODELS.SIMPLE: {
-        await Simple.SetSpecification(ID, isBanner);
+        await Simple.SetSpecification(ID);
         break;
       }
       case MODELS.VEHICLE: {
-        await Vehicle.SetSpecification(ID, isBanner);
+        await Vehicle.SetSpecification(ID);
         break;
       }
       case MODELS.TESTIMONIAL: {
-        await Testimonial.SetSpecification(ID, isBanner);
+        await Testimonial.SetSpecification(ID);
         break;
       }
       case MODELS.WITHICON: {
-        await WithIcon.SetSpecification(ID, isBanner);
+        await WithIcon.SetSpecification(ID);
         break;
       }
       case MODELS.CATEGORY: {
@@ -63,29 +63,29 @@ const setModelSpecification = async (model, ID, isBanner = false) => {
     throw new Error(e.message);
   }
 };
-const getDataFromModel = async (model, ID, isBanner = false) => {
+const getDataFromModel = async (model, ID) => {
   try {
     let data;
     console.log(model);
     switch (model) {
       case MODELS.ARTICLE: {
-        data = await Article.sendData(ID, isBanner); // array
+        data = await Article.sendData(ID); // array
         break;
       }
       case MODELS.SIMPLE: {
-        data = await Simple.sendData(ID, isBanner);
+        data = await Simple.sendData(ID);
         break;
       }
       case MODELS.VEHICLE: {
-        data = await Vehicle.sendData(ID, isBanner);
+        data = await Vehicle.sendData(ID);
         break;
       }
       case MODELS.TESTIMONIAL: {
-        data = await Testimonial.sendData(ID, isBanner);
+        data = await Testimonial.sendData(ID);
         break;
       }
       case MODELS.WITHICON: {
-        data = await WithIcon.sendData(ID, isBanner);
+        data = await WithIcon.sendData(ID);
         break;
       }
       default:
@@ -141,7 +141,7 @@ const removeDataFromCategories = async (ID) => {
   /// ID = bannerID
   console.log("asfasf");
   try {
-    const categoryList = await Category.find({ bannerID: ID }, ["childModel"]);
+    const categoryList = await Category.find({ eID: ID }, ["childModel"]);
     console.log("asfasfasd");
     for (const o of categoryList) {
       await o.remove();

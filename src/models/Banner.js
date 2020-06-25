@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const autoIncrement = require("mongoose-auto-increment");
+// const autoIncrement = require("mongoose-auto-increment");
 const Category = require("./Category");
 const Utils = require("../shared/utils/helper");
 
@@ -27,10 +27,15 @@ const BannerSchema = new mongoose.Schema(
 
 BannerSchema.statics.sendData = async () => {
   try {
-    const bannerList = await Banner.find({}, ["model", "title", "hasCategory"]);
+    const bannerList = await Banner.find(
+      {},
+      ["model", "title", "hasCategory", "priority"],
+      { sort: { priority: 1 } }
+    );
     let res = [];
 
     for (const o of bannerList) {
+      console.log(o);
       let data;
       if (o["hasCategory"]) {
         data = await Category.sendData(o["_id"]);
@@ -44,7 +49,7 @@ BannerSchema.statics.sendData = async () => {
       }
       let obj = {};
       obj.items = data; // array
-      obj.cID = o["_id"];
+      obj.bannerID = o["_id"];
       obj.link = o["link"];
       obj.title = o["title"];
       obj.priority = o["priority"];
@@ -82,8 +87,8 @@ BannerSchema.pre("remove", async function (next) {
   }
 });
 
-autoIncrement.initialize(mongoose.connection);
-BannerSchema.plugin(autoIncrement.plugin, "Banner");
+// autoIncrement.initialize(mongoose.connection);
+// BannerSchema.plugin(autoIncrement.plugin, "Banner");
 
 var Banner = mongoose.model("Banner", BannerSchema);
 module.exports = Banner;

@@ -11,8 +11,8 @@ const TestimonialSchema = new mongoose.Schema(
       required: true,
       lowercase: true,
     },
-    categoryID: {
-      type: String,
+    eID: {
+      type: mongoose.Types.ObjectId,
       required: true,
     },
     reviewerOcc: String,
@@ -26,12 +26,12 @@ const TestimonialSchema = new mongoose.Schema(
   }
 );
 
-TestimonialSchema.statics.sendData = async (categoryID) => {
+TestimonialSchema.statics.sendData = async (eID) => {
   try {
     const cn = await Testimonial.find(
-      { categoryID },
+      { eID },
       [
-        "categoryID",
+        "eID",
         "type",
         "link",
         "caption",
@@ -50,7 +50,7 @@ TestimonialSchema.statics.sendData = async (categoryID) => {
       switch (o["type"]) {
         case "video": {
           rs[o["type"]].push({
-            categoryID: o["categoryID"],
+            eID: o["eID"],
             type: o["type"],
             link: o["link"],
             caption: o["caption"],
@@ -60,7 +60,7 @@ TestimonialSchema.statics.sendData = async (categoryID) => {
         }
         case "promotion": {
           rs[o["type"]].push({
-            categoryID: o["categoryID"],
+            eID: o["eID"],
             type: o["type"],
             link: o["link"],
             imgLink: o["imgLink"],
@@ -68,7 +68,7 @@ TestimonialSchema.statics.sendData = async (categoryID) => {
         }
         case "review": {
           rs[o["type"]].push({
-            categoryID: o["categoryID"],
+            eID: o["eID"],
             type: o["type"],
             review: o["review"],
             reviewer: o["reviewer"],
@@ -90,7 +90,7 @@ TestimonialSchema.pre("remove", async (next) => {
   try {
     const cn = await Testimonial.find(
       {
-        categoryID: testimonial["categoryID"],
+        eID: testimonial["eID"],
         priority: { $gte: testimonial.priority },
         type: testimonial.type,
       },

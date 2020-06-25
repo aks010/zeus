@@ -9,8 +9,7 @@ const SimpleSchema = new mongoose.Schema(
     price: Number,
     eventDate: Date,
     caption: String,
-    categoryID: Number,
-    bannerID: Number,
+    eID: mongoose.Types.ObjectId,
     priority: Number,
   },
   {
@@ -18,26 +17,21 @@ const SimpleSchema = new mongoose.Schema(
   }
 );
 
-SimpleSchema.statics.sendData = async (ID, isBanner = true) => {
+SimpleSchema.statics.sendData = async (ID) => {
   let specs, data;
   try {
-    if (isBanner) {
-      specs = await Spec.findOne({ bannerID: ID }); // object
-    } else specs = await Spec.findOne({ categoryID: ID }); //object
+    specs = await Spec.findOne({ eID: ID }, ["-createdAt", "-updatedAt"], {
+      lean: true,
+    }); // object
     // get specs which are required in array
     let reqSpecs = [];
     for (const [key, value] of Object.entries(specs)) {
-      if (value) reqSpecs.push(key);
+      if (value == true) reqSpecs.push(key);
     }
     reqSpecs.push("priority");
-    if (isBanner)
-      data = await Simple.find({ bannerID: ID }, reqSpecs, {
-        sort: { priority: 1 },
-      });
-    else
-      data = await Simple.find({ categoryID: ID }, reqSpecs, {
-        sort: { priority: 1 },
-      });
+    data = await Simple.find({ eID: ID }, reqSpecs, {
+      sort: { priority: 1 },
+    });
     return data;
   } catch (e) {
     console.log("Simple Statics Error!");

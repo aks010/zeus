@@ -9,7 +9,7 @@ const ListCategories = async (req, res) => {
       .send({ message: `Please provide banner id`, status: 412 });
   try {
     const cns = await Category.find(
-      { bannerID: req.params.id },
+      { eID: req.params.id },
       ["_id", "title", "link", "childModel", "priority"],
       {
         sort: { priority: 1 },
@@ -47,8 +47,7 @@ const ListCategoryItems = async (req, res) => {
     console.log(o["_id"]);
     let { error, data } = await Utils.getDataFromModel(
       o["childModel"],
-      o["_id"],
-      false
+      o["_id"]
     ); /// TEST FOR ERROR THROW FROM FUNCTION
     if (error != null) throw new Error(error);
     let obj = {};
@@ -75,10 +74,11 @@ const ListAll = async (req, res) => {
       .status(412)
       .send({ message: `Please provide banner id`, status: 412 });
   try {
-    const categoryList = await Category.find({ bannerID: req.params.id }, [
-      "childModel",
-      "title",
-    ]);
+    const categoryList = await Category.find(
+      { eID: req.params.id },
+      ["childModel", "title", "priority", "link"],
+      { sort: { priority: 1 } }
+    );
     let rs = [];
 
     for (const o of categoryList) {
@@ -86,14 +86,15 @@ const ListAll = async (req, res) => {
         o["childModel"],
         o["_id"]
       ); /// TEST FOR ERROR THROW FROM FUNCTION
-      console.log(error);
+      console.log(o);
       if (error != undefined) throw new Error(error);
       let obj = {};
       obj.items = data; // array
-      obj.cID = o["_id"];
+      obj.categoryID = o["_id"];
       obj.link = o["link"];
       obj.title = o["title"];
       obj.priority = o["priority"];
+      obj.childModel = o["childModel"];
       rs.push(obj);
     }
     return res.send({
@@ -113,12 +114,15 @@ const UpdateCategory = async (req, res) => {
   if (!req.params.id)
     return res
       .status(412)
-      .send({ message: `Please provide item id`, status: 412 });
+      .send({ message: `Please provide category id`, status: 412 });
 
   try {
     let updates = Object.keys(req.body);
     let cn = await Category.findOne({ _id: req.params.id });
-
+    if (!cn)
+      return res
+        .status(400)
+        .send({ message: "Requested Category does not exist!", status: 400 });
     const allowedUpdates = ["title", "link"];
 
     const isValidOperation = updates.every((update) =>
@@ -150,22 +154,21 @@ const UpdatePriority = async (req, res) => {
       .send({ message: `Please provide banner id`, status: 412 });
   let cn = Object.keys(req.body);
   let min = 1000000;
-  cn = cn.map((o) => {
+  cn.forEach((o) => {
     min = min < parseInt(req.body[o]) ? min : parseInt(req.body[o]);
-    return parseInt(o);
   });
 
   try {
-    const allowedIds = await Category.find({ bannerID: req.params.id }, [
-      "_id",
-    ]);
+    const allowedIds = await Category.find({ eID: req.params.id }, ["_id"]);
     // console.log()
     let allowedUpdates = [];
 
-    allowedIds.forEach((o) => allowedUpdates.push(o["_id"]));
+    allowedIds.forEach((o) => allowedUpdates.push(o["_id"].toString()));
     let isValidOperation = cn.every((update) =>
       allowedUpdates.includes(update)
     );
+    console.log(cn);
+    console.log(allowedUpdates);
     if (!isValidOperation) {
       return res.status(400).send({
         message: "Incomplete list of items for setting priority",
@@ -204,7 +207,7 @@ const CreateCategory = async (req, res) => {
   try {
     let category = await Category.findOne({
       title: req.body.title,
-      bannerID: req.params.id,
+      eID: req.params.id,
     });
     if (!category) {
       // CHECK EXISTENCE OF CHILD MODEL
@@ -214,11 +217,8 @@ const CreateCategory = async (req, res) => {
           status: 400,
         });
       category = new Category({ ...req.body });
-      category.bannerID = req.params.id;
-      await Category.countDocuments({ bannerID: req.params.id }, function (
-        err,
-        c
-      ) {
+      category.eID = req.params.id;
+      await Category.countDocuments({ eID: req.params.id }, function (err, c) {
         category.priority = c;
       });
       category = await category.save();
@@ -256,7 +256,9 @@ const RemoveCategory = async (req, res) => {
       _id: req.params.id,
     });
     if (!category)
-      return res.status(404).send({ message: `Category does not exist!` });
+      return res
+        .status(400)
+        .send({ message: `Category does not exist!`, status: 400 });
     await category.remove();
 
     const cns = await Category.find({

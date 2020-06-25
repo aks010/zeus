@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const autoIncrement = require("mongoose-auto-increment");
+// const autoIncrement = require("mongoose-auto-increment");
 const getDataFromModel = require("../shared/utils/helper");
 const Utils = require("../shared/utils/helper");
 const Spec = require("../models/Type/Spec");
@@ -15,8 +15,8 @@ const CategorySchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    bannerID: {
-      type: Number,
+    eID: {
+      type: mongoose.Types.ObjectId,
       required: true,
     },
     priority: Number,
@@ -26,12 +26,13 @@ const CategorySchema = new mongoose.Schema(
   }
 );
 
-CategorySchema.statics.sendData = async (bannerID) => {
+CategorySchema.statics.sendData = async (eID) => {
   try {
-    const categoryList = await Category.find({ bannerID }, [
-      "childModel",
-      "title",
-    ]);
+    const categoryList = await Category.find(
+      { eID },
+      ["childModel", "title", "priority", "link"],
+      { sort: { priority: 1 } }
+    );
     let res = [];
 
     for (const o of categoryList) {
@@ -39,7 +40,7 @@ CategorySchema.statics.sendData = async (bannerID) => {
       if (error != null) throw new Error(error);
       let obj = {};
       obj.items = data; // array
-      obj.cID = o["_id"];
+      obj.categoryID = o["_id"];
       obj.link = o["link"];
       obj.title = o["title"];
       obj.priority = o["priority"];
@@ -61,7 +62,7 @@ CategorySchema.pre("remove", async function (next) {
       category.childModel,
       category._id
     );
-    await Spec.deleteOne({ categoryID: category._id });
+    await Spec.deleteOne({ eID: category._id });
     if (!error) return next();
     else throw new Error(error);
   } catch (e) {
@@ -71,8 +72,8 @@ CategorySchema.pre("remove", async function (next) {
   }
 });
 
-autoIncrement.initialize(mongoose.connection);
-CategorySchema.plugin(autoIncrement.plugin, "Category");
+// autoIncrement.initialize(mongoose.connection);
+// CategorySchema.plugin(autoIncrement.plugin, "Category");
 
 var Category = mongoose.model("Category", CategorySchema);
 module.exports = Category;
