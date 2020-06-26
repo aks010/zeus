@@ -1,4 +1,4 @@
-const MicroService = require("../modals/banners/MicroService");
+const MicroService = require("../models/banners/MicroService");
 
 const List = async (req, res) => {
   try {

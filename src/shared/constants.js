@@ -1,27 +1,15 @@
-const BROWSECATEGORY = "BrowseCategory";
-const BUYSELLTOOL = "BuySellTool";
-const COUNTER = "Counter";
-const DREAMVEHICLE = "DreamVehicle";
-const GUIDANCE = "Guidance";
-const HOTDEAL = "HotDeal";
-const MICROSERVICE = "MicroService";
-const POPULARVIDEOS = "PopularVideos";
-const PRESS = "Press";
-const SERVICES = "Services";
-const TESTIMONIALS = "Testimonials";
-const WHATSPOPULAR = "WhatsPopular";
+const ARTICLE = "Article";
+const SIMPLE = "Simple";
+const TESTIMONIAL = "Testimonial";
+const VEHICLE = "Vehicle";
+const WITHICON = "WithIcon";
+const CATEGORY = "Category";
 
 module.exports = {
-  BROWSECATEGORY,
-  BUYSELLTOOL,
-  COUNTER,
-  DREAMVEHICLE,
-  GUIDANCE,
-  HOTDEAL,
-  MICROSERVICE,
-  POPULARVIDEOS,
-  PRESS,
-  SERVICES,
-  TESTIMONIALS,
-  WHATSPOPULAR,
+  ARTICLE,
+  CATEGORY,
+  SIMPLE,
+  TESTIMONIAL,
+  VEHICLE,
+  WITHICON,
 };
