@@ -21,7 +21,7 @@ const CustomSchema = new mongoose.Schema(
   }
 );
 
-CustomSchema.statics.sendData = async (ID) => {
+CustomSchema.statics.sendData = async (eID) => {
   try {
     let cn = await Spec.findOne({ eID }, ["-createdAt", "-updatedAt"], {
       lean: true,
@@ -52,7 +52,7 @@ CustomSchema.statics.sendData = async (ID) => {
     }
     return data;
   } catch (e) {
-    console.log("Simple Statics Error!");
+    console.log("Custom Statics Error!");
     throw new Error(e.message);
   }
 };

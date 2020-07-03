@@ -36,6 +36,44 @@ const ListAllBanners = async (req, res) => {
   }
 };
 
+const UpdatePriorityBanner = async (req, res) => {
+  console.log(req.params.id);
+  try {
+    const banner = await Banners.findOne({
+      _id: req.params.id,
+    });
+    if (!banner)
+      return res
+        .status(400)
+        .send({ message: "Banner does not exist!", status: 400 });
+
+    if (req.body.priority > banner.priority) {
+      const banners = await Banners.find({
+        priority: { $lte: req.body.priority, $gte: banner.priority + 1 },
+      });
+      for (const o of banners) {
+        await Banners.updateOne({ _id: o._id }, { priority: o.priority - 1 });
+      }
+    } else {
+      const banners = await Banners.find({
+        priority: { $gte: req.body.priority, $lte: banner.priority - 1 },
+      });
+      for (const o of banners) {
+        await Banners.updateOne({ _id: o._id }, { priority: o.priority + 1 });
+      }
+    }
+    await Banners.updateOne(
+      { _id: req.params.id },
+      { priority: req.body.priority }
+    );
+    await banner.save();
+
+    res.send({ message: `Priority Updated!`, status: 200 });
+  } catch (e) {
+    console.log(e.message);
+    res.status(500).send({ message: e.message, status: 500 });
+  }
+};
 /// todo: UPDATING BANNER MODEL
 
 const UpdatePriority = async (req, res) => {
@@ -101,8 +139,10 @@ const CreateBanner = async (req, res) => {
         });
       }
       await Banners.countDocuments({}, function (err, c) {
-        banner.priority = c;
+        if (!err) banner.priority = c;
+        else throw err;
       });
+      console.log(banner.priority);
       banner = await banner.save();
       await Utils.setModelSpecification(req.body.model, banner._id, true);
       res.send({
@@ -153,6 +193,7 @@ module.exports = {
   ListBanners,
   CreateBanner,
   UpdatePriority,
+  UpdatePriorityBanner,
   RemoveBanner,
   ListAllBanners,
 };

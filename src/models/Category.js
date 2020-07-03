@@ -36,7 +36,10 @@ CategorySchema.statics.sendData = async (eID) => {
     let res = [];
 
     for (const o of categoryList) {
-      let { error, data } = await getDataFromModel(o["childModel"], o["_id"]); /// TEST FOR ERROR THROW FROM FUNCTION
+      let { error, data } = await Utils.getDataFromModel(
+        o["childModel"],
+        o["_id"]
+      ); /// TEST FOR ERROR THROW FROM FUNCTION
       if (error != null) throw new Error(error);
       let obj = {};
       obj.items = data; // array

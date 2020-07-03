@@ -139,7 +139,7 @@ const UpdateSpecificaiton = async (req, res) => {
       .status(412)
       .send({ message: `Please provide Category id`, status: 412 });
   let updates = Object.keys(req.body);
-  const allowedUpdates = ["eventDate", "type", "price", "rating"];
+  const allowedUpdates = ["price", "rating"];
   const isValidOperation = updates.every((update) =>
     allowedUpdates.includes(update)
   );
@@ -187,6 +187,85 @@ const UpdateSpecificaiton = async (req, res) => {
   } catch (e) {
     console.log(e.message);
     return res.status(500).send({ message: e.message, status: e.code });
+  }
+};
+
+// UPDATE MODEL PRIORITY /:EID/:id/:type
+const UpdateModelPriority = async (req, res) => {
+  console.log(req.body);
+  if (!req.params.EID || !req.params.id)
+    return res.status(412).send({
+      message: `Please provide ${!req.params.EID ? "parent id" : "item id"}`,
+      status: 412,
+    });
+  try {
+    const specs = await Spec.findOne({ eID: req.params.EID }, ["type"], {
+      lean: true,
+    });
+    if (!specs)
+      return res
+        .status(500)
+        .send({ message: "Category Specification not found!!", status: 500 });
+
+    let item;
+    if (specs["type"]) {
+      if (!req.params.type)
+        return res
+          .status(412)
+          .send({ message: `Please provide Item type`, status: 412 });
+    }
+    item = await Article.findOne({ _id: req.params.id });
+    if (!item)
+      return res
+        .status(400)
+        .send({ message: "Item does not exist!", status: 400 });
+
+    let cns;
+    console.log("HOLA");
+    console.log(item.priority);
+    console.log(req.body.priority);
+    if (req.body.priority > item.priority) {
+      console.log("END");
+      if (specs["type"])
+        cns = await Article.find({
+          eID: req.params.EID,
+          type: req.params.type,
+          priority: { $lte: req.body.priority, $gte: item.priority + 1 },
+        });
+      else
+        cns = await Article.find({
+          eID: req.params.EID,
+          priority: { $lte: req.body.priority, $gte: item.priority + 1 },
+        });
+      for (const o of cns) {
+        await Article.updateOne({ _id: o._id }, { priority: o.priority - 1 });
+      }
+      console.log("HOLA2");
+    } else {
+      if (specs["type"])
+        cns = await Article.find({
+          eID: req.params.EID,
+          type: req.params.type,
+          priority: { $gte: req.body.priority, $lte: item.priority - 1 },
+        });
+      else
+        cns = await Article.find({
+          eID: req.params.EID,
+          priority: { $gte: req.body.priority, $lte: item.priority - 1 },
+        });
+      for (const o of cns) {
+        await Article.updateOne({ _id: o._id }, { priority: o.priority + 1 });
+      }
+    }
+    await Article.updateOne(
+      { _id: req.params.id },
+      { priority: req.body.priority }
+    );
+
+    res.send({ message: `Priority Updated!`, status: 200 });
+  } catch (e) {
+    console.log(e.message);
+    res.status(500).json({ message: e.message, status: e.code });
   }
 };
 
@@ -457,6 +536,7 @@ module.exports = {
   ListSpecification,
   UpdateSpecificaiton,
   UpdateItem,
+  UpdateModelPriority,
   UpdatePriority,
   Remove,
   RemoveType,

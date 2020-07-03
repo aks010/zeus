@@ -146,6 +146,48 @@ const UpdateCategory = async (req, res) => {
   }
 };
 
+/// UPDATE CATEGORY PRIORITY (indvl) /:BID/:CID
+const UpdateCategoryPriority = async (req, res) => {
+  console.log(req.params.CID);
+  try {
+    const category = await Category.findOne({
+      _id: req.params.CID,
+      eID: req.params.BID,
+    });
+    if (!category)
+      return res
+        .status(400)
+        .send({ message: "Category does not exist!", status: 400 });
+
+    if (req.body.priority > category.priority) {
+      const cns = await Category.find({
+        eID: req.params.BID,
+        priority: { $lte: req.body.priority, $gte: category.priority + 1 },
+      });
+      for (const o of cns) {
+        await Category.updateOne({ _id: o._id }, { priority: o.priority - 1 });
+      }
+    } else {
+      const cns = await Category.find({
+        priority: { $gte: req.body.priority, $lte: category.priority - 1 },
+      });
+      for (const o of cns) {
+        await Category.updateOne({ _id: o._id }, { priority: o.priority + 1 });
+      }
+    }
+    await Category.updateOne(
+      { _id: req.params.CID },
+      { priority: req.body.priority }
+    );
+    // await category.save();
+
+    res.send({ message: `Priority Updated!`, status: 200 });
+  } catch (e) {
+    console.log(e.message);
+    res.status(500).send({ message: e.message, status: 500 });
+  }
+};
+
 // UPDATE PRIORITY OF CATEGORY IN BANNER /:id
 const UpdatePriority = async (req, res) => {
   if (!req.params.id)
@@ -282,6 +324,7 @@ module.exports = {
   ListCategoryItems,
   CreateCategory,
   UpdateCategory,
+  UpdateCategoryPriority,
   UpdatePriority,
   RemoveCategory,
 };
