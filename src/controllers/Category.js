@@ -1,6 +1,34 @@
 const Category = require("../models/Category");
 const Utils = require("../shared/utils/helper");
 
+const ReadCategory = async (req, res) => {
+  if (!req.params.id) {
+    return res
+      .status(412)
+      .send({ message: "Please provide category id!", status: 412 });
+  }
+  try {
+    const category = await Category.findOne(
+      { _id: req.params.id },
+      ["-createdAt", "-updatedAt", "-priority"],
+      { lean: true }
+    );
+    if (!category) {
+      return res
+        .status(400)
+        .send({ message: "Category does not exist", status: 400 });
+    }
+    return res.send({
+      message: "Category Fetched",
+      status: 200,
+      data: category,
+    });
+  } catch (e) {
+    console.log(e.message);
+    return res.status(500).send("Something Went Wrong!");
+  }
+};
+
 /// List Categories of Banner /:id
 const ListCategories = async (req, res) => {
   if (!req.params.id)
@@ -319,6 +347,7 @@ const RemoveCategory = async (req, res) => {
 };
 
 module.exports = {
+  ReadCategory,
   ListAll,
   ListCategories,
   ListCategoryItems,

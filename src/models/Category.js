@@ -1,6 +1,4 @@
 const mongoose = require("mongoose");
-// const autoIncrement = require("mongoose-auto-increment");
-const getDataFromModel = require("../shared/utils/helper");
 const Utils = require("../shared/utils/helper");
 const Spec = require("../models/Type/Spec");
 

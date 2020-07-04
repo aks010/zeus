@@ -1,6 +1,30 @@
 const Banners = require("../models/Banner");
 const Utils = require("../shared/utils/helper");
 
+const ReadBanner = async (req, res) => {
+  if (!req.params.id) {
+    return res
+      .status(412)
+      .send({ message: "Please provide banner id!", status: 412 });
+  }
+  try {
+    const banner = await Banners.findOne(
+      { _id: req.params.id },
+      ["-createdAt", "-updatedAt", "-priority"],
+      { lean: true }
+    );
+    if (!banner) {
+      return res
+        .status(400)
+        .send({ message: "Banner does not exist", status: 400 });
+    }
+    return res.send({ message: "Banner Fetched", status: 200, data: banner });
+  } catch (e) {
+    console.log(e.message);
+    return res.status(500).send("Something Went Wrong!");
+  }
+};
+
 const ListBanners = async (req, res) => {
   try {
     const banners = await Banners.find(
@@ -190,6 +214,7 @@ const RemoveBanner = async (req, res) => {
 };
 
 module.exports = {
+  ReadBanner,
   ListBanners,
   CreateBanner,
   UpdatePriority,
