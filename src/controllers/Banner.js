@@ -70,7 +70,6 @@ const UpdatePriorityBanner = async (req, res) => {
       return res
         .status(400)
         .send({ message: "Banner does not exist!", status: 400 });
-
     if (req.body.priority > banner.priority) {
       const banners = await Banners.find({
         priority: { $lte: req.body.priority, $gte: banner.priority + 1 },
@@ -79,13 +78,15 @@ const UpdatePriorityBanner = async (req, res) => {
         await Banners.updateOne({ _id: o._id }, { priority: o.priority - 1 });
       }
     } else {
+      const num = Number(req.body.priority);
       const banners = await Banners.find({
-        priority: { $gte: req.body.priority, $lte: banner.priority - 1 },
+        priority: { $gte: num, $lte: num - 1 },
       });
       for (const o of banners) {
         await Banners.updateOne({ _id: o._id }, { priority: o.priority + 1 });
       }
     }
+
     await Banners.updateOne(
       { _id: req.params.id },
       { priority: req.body.priority }

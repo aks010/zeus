@@ -76,7 +76,7 @@ const GetItem = async (req, res) => {
     for (const [key, value] of Object.entries(cn)) {
       if (value === true) resSpecs.push(key);
     }
-    const o = await Article.find({ _id: req.params.id }, resSpecs);
+    const o = await Article.findOne({ _id: req.params.id }, resSpecs);
     return res.send({ message: "Item Fetched", status: 200, data: o });
   } catch (e) {
     console.log(e);
@@ -500,6 +500,7 @@ const Remove = async (req, res) => {
       return res
         .status(400)
         .send({ message: `Item does not exist!`, status: 400 });
+    console.log(cn);
     await cn.remove();
 
     res.send({ message: `Item Removed Successfully!`, status: 200 });

@@ -107,13 +107,14 @@ ArticleSchema.statics.SetSpecification = async (eID) => {
   }
 };
 
-ArticleSchema.pre("remove", async (next) => {
-  const article = this;
+ArticleSchema.pre("remove", async function (next) {
+  const cn = this;
   try {
     let cns;
-    const specs = await Spec.findOne({ eID: article["eID"] }, ["type"], {
+    const specs = await Spec.findOne({ eID: cn["eID"] }, ["type"], {
       lean: true,
     });
+    console.log(specs);
 
     if (specs["type"] == true) {
       cns = await Article.find({
