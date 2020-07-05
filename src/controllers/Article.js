@@ -352,6 +352,7 @@ const UpdateItem = async (req, res) => {
 
   try {
     let updates = Object.keys(req.body);
+    console.log(updates);
     let cn = await Article.findOne({ _id: req.params.id });
     if (!cn)
       return res
@@ -370,6 +371,7 @@ const UpdateItem = async (req, res) => {
     for (const [key, value] of Object.entries(specs)) {
       if (value === true) resSpecs.push(key);
     }
+    console.log(resSpecs);
     const allowedUpdates = resSpecs;
     // console.log(allowedUpdates);
     const isValidOperation = updates.every((update) =>
@@ -384,16 +386,18 @@ const UpdateItem = async (req, res) => {
     updates.forEach((update) => (cn[update] = req.body[update]));
     let isDuplicate;
     if (specs["type"] == true) {
-      isDuplicate = await Article.findOne({
-        title: cn.title,
-        type: cn.type,
-        eID: cn.eID,
-      });
+      if (req.body.title)
+        isDuplicate = await Article.findOne({
+          title: cn.title,
+          type: cn.type,
+          eID: cn.eID,
+        });
     } else {
-      isDuplicate = await Article.findOne({
-        title: cn.title,
-        eID: cn.eID,
-      });
+      if (req.body.title)
+        isDuplicate = await Article.findOne({
+          title: cn.title,
+          eID: cn.eID,
+        });
     }
 
     if (isDuplicate && isDuplicate["eID"] != cn.eID)

@@ -60,6 +60,45 @@ const ListAllBanners = async (req, res) => {
   }
 };
 
+const UpdateBanner = async (req, res) => {
+  if (!req.params.id)
+    return res
+      .status(412)
+      .send({ message: `Please provide banner id`, status: 412 });
+
+  try {
+    let updates = Object.keys(req.body);
+    let cn = await Banners.findOne({ _id: req.params.id });
+    if (!cn)
+      return res
+        .status(400)
+        .send({ message: "Requested Banner does not exist!", status: 400 });
+    const allowedUpdates = ["title", "link"];
+
+    const isValidOperation = updates.every((update) =>
+      allowedUpdates.includes(update)
+    );
+    if (!isValidOperation) {
+      res.status(400).send({
+        message: "Requested Params are not allowed to update!",
+        status: 400,
+      });
+    }
+
+    updates.forEach((update) => (cn[update] = req.body[update]));
+    await cn.save();
+
+    return res.send({
+      message: "Banner Updated Successfully!",
+      status: 200,
+      data: cn,
+    });
+  } catch (e) {
+    console.log(e.message);
+    return res.status(500).send({ message: e.message, status: e.code });
+  }
+};
+
 const UpdatePriorityBanner = async (req, res) => {
   console.log(req.params.id);
   try {
@@ -218,6 +257,7 @@ module.exports = {
   ReadBanner,
   ListBanners,
   CreateBanner,
+  UpdateBanner,
   UpdatePriority,
   UpdatePriorityBanner,
   RemoveBanner,
