@@ -1,6 +1,13 @@
 const Banners = require("../models/Banner");
 const Utils = require("../shared/utils/helper");
 
+const ModelList = (req, res) => {
+  console.log("ENTER");
+  const data = Utils.modelList();
+  console.log(data);
+  res.send({ message: "Fetched Model Types!", status: 200, data: data });
+};
+
 const ReadBanner = async (req, res) => {
   if (!req.params.id) {
     return res
@@ -119,7 +126,7 @@ const UpdatePriorityBanner = async (req, res) => {
     } else {
       const num = Number(req.body.priority);
       const banners = await Banners.find({
-        priority: { $gte: num, $lte: num - 1 },
+        priority: { $gte: num, $lte: banner.priority - 1 },
       });
       for (const o of banners) {
         await Banners.updateOne({ _id: o._id }, { priority: o.priority + 1 });
@@ -202,13 +209,21 @@ const CreateBanner = async (req, res) => {
             "Cannot Set 'hasCategory' true for non-Category Model Banner!",
         });
       }
+
+      if (!Utils.checkModelExistence(req.body.model)) {
+        res.status(400).send({
+          status: 400,
+          message: `Requested Model: ${req.body.model}, is not in DB! Please Ensure Correct Model Names`,
+        });
+      }
+
       await Banners.countDocuments({}, function (err, c) {
         if (!err) banner.priority = c;
         else throw err;
       });
       console.log(banner.priority);
       banner = await banner.save();
-      await Utils.setModelSpecification(req.body.model, banner._id, true);
+      await Utils.setModelSpecification(req.body.model, banner._id);
       res.send({
         message: `Created Banner`,
         status: 201,
@@ -254,6 +269,7 @@ const RemoveBanner = async (req, res) => {
 };
 
 module.exports = {
+  ModelList,
   ReadBanner,
   ListBanners,
   CreateBanner,

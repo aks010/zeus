@@ -84,7 +84,8 @@ const GetItem = async (req, res) => {
   }
 };
 
-// LIST SPECS WITH OPTIONS AND DISABLED /:id
+// VIEW SPECS
+
 const ListSpecification = async (req, res) => {
   if (!req.params.id)
     return res
@@ -105,7 +106,56 @@ const ListSpecification = async (req, res) => {
       ["childModel"],
       { lean: true }
     );
-    if (isCategoryArticle.childModel !== MODELS.ARTICLE)
+    if (isCategoryArticle && isCategoryArticle.childModel !== MODELS.ARTICLE)
+      return res.status(400).send({
+        message: `Model and Category Model does not match!`,
+        status: 400,
+      });
+    let data = {};
+    data["required"] = [
+      "title",
+      "imgLink",
+      "link",
+      "eventDate",
+      "caption",
+      "type",
+    ];
+    data["options"] = [];
+    for (const [key, value] of Object.entries(specs)) {
+      if (value === true)
+        if (!data["required"].includes(key)) data["options"].push(key);
+    }
+
+    return res.send({ message: "Successfully Fetched Specifications!", data });
+  } catch (e) {
+    console.log(e.message);
+    return res.status(500).send({ message: e.message, status: e.code });
+  }
+};
+
+// LIST SPECS WITH OPTIONS AND DISABLED /:id
+
+const ListSpecification = async (req, res) => {
+  if (!req.params.id)
+    return res
+      .status(412)
+      .send({ message: `Please provide Category id`, status: 412 });
+
+  try {
+    const specs = await Spec.findOne({ eID: req.params.id }, ["-priority"], {
+      lean: true,
+    });
+    if (!specs)
+      return res
+        .status(500)
+        .send({ message: "Category Specification not found!!", status: 500 });
+
+    let isCategoryArticle = await Category.findOne(
+      { _id: req.params.id },
+      ["childModel"],
+      { lean: true }
+    );
+    if (isCategoryArticle && isCategoryArticle.childModel !== MODELS.ARTICLE)
       return res.status(400).send({
         message: `Model and Category Model does not match!`,
         status: 400,
@@ -167,9 +217,9 @@ const UpdateSpecificaiton = async (req, res) => {
         ["model"],
         { lean: true }
       );
-      if (isBannerModel.childModel !== MODELS.ARTICLE) {
+      if (isBannerModel.model !== MODELS.ARTICLE) {
         return res.status(400).send({
-          message: `Model and Category Model does not match!`,
+          message: `Model and Banner Model does not match!`,
           status: 400,
         });
       }

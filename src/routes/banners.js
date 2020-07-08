@@ -8,6 +8,7 @@ router.use(function timeLog(req, res, next) {
 
 router.get("/", BannerController.ListBanners);
 router.get("/all", BannerController.ListAllBanners);
+router.get("/models", BannerController.ModelList);
 router.post("/create", BannerController.CreateBanner);
 router.patch("/update/:id", BannerController.UpdateBanner);
 router.patch("/update_priority", BannerController.UpdatePriority);

@@ -7,6 +7,13 @@ const Vehicle = require("../../models/Type/Vehicle");
 const WithIcon = require("../../models/Type/WithIcon");
 const Category = require("../../models/Category");
 
+const modelList = () => {
+  const data = Object.values(MODELS);
+  console.log(MODELS);
+  console.log(data);
+  return data;
+};
+
 const checkModelExistence = (model) => {
   switch (model) {
     case MODELS.ARTICLE:
@@ -63,6 +70,7 @@ const setModelSpecification = async (model, ID) => {
     throw new Error(e.message);
   }
 };
+
 const getDataFromModel = async (model, ID) => {
   try {
     let data;
@@ -154,6 +162,7 @@ const removeDataFromCategories = async (ID) => {
 };
 
 module.exports = {
+  modelList,
   getDataFromModel,
   setModelSpecification,
   removeDataFromModel,
