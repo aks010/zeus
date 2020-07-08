@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const autoIncrement = require("mongoose-auto-increment");
 const Spec = require("./Spec");
+const SPECIFICATIONS = require("../../shared/specifications");
+
 const ArticleSchema = new mongoose.Schema(
   {
     title: {
@@ -44,73 +46,56 @@ const ArticleSchema = new mongoose.Schema(
   }
 );
 
-ArticleSchema.statics.sendData = async (eID, isBanner = false) => {
+ArticleSchema.statics.sendData = async (eID) => {
   /// UPDATE THIS USING SPECIFICATION
   try {
-    const cn = await Article.find(
-      { eID },
-      [
-        "_id",
-        "title",
-        "imgLink",
-        "link",
-        "caption",
-        "type",
-        "eventDate",
-        "priority",
-        "price",
-        "rating",
-      ],
-      { sort: { priority: 1 } }
-    );
+    let cn = await Spec.findOne({ eID }, ["-createdAt", "-updatedAt"], {
+      lean: true,
+    });
+    if (!cn) throw new Error("Category Specification not found!!");
+    let resSpecs = [];
+    for (const [key, value] of Object.entries(cn)) {
+      if (value === true) resSpecs.push(key);
+    }
 
-    let rs = [];
-    if (
-      cn.length != 0 &&
-      (cn[0].price === null || cn[0].price === undefined) // banner != news...
-    ) {
-      for (const o of cn) {
-        rs[o["type"]].push({
-          _id: o["_id"],
-          title: o["title"],
-          imgLink: o["imgLink"],
-          link: o["link"],
-          caption: o["caption"],
-          type: o["type"],
-          eventDate: o["eventDate"],
-          priority: o["priority"],
-        });
+    const cns = await Article.find({ eID }, resSpecs, {
+      sort: { priority: 1 },
+    });
+    let data;
+    if (cn["type"] == true) {
+      data = {};
+      for (const o of cns) {
+        if (!data[o["type"]]) {
+          data[o["type"]] = [];
+        }
+        data[o["type"]].push(o);
       }
     } else {
-      for (const o of cn) {
-        rs[o["type"]].push(o);
+      data = [];
+      for (const o of cns) {
+        data.push(o);
       }
     }
-    console.log("RESFEF");
-    console.log(rs);
-    return rs;
+    return data;
   } catch (e) {
-    console.log("Article Statics Error!");
+    console.log("Article Statics Error");
     throw new Error(e.message);
   }
 };
 
-ArticleSchema.statics.SetSpecification = async (eID) => {
+ArticleSchema.statics.SetSpecification = async (eID, data) => {
   /// UPDATE FOR USE IN BANNER WITHOUT CATEGORY USING ISBANNER FIELD
   try {
     if (!eID || eID == "")
       throw new Error("Cannot Set Specification without ID");
-    const specs = new Spec({
-      title: true,
-      imgLink: true,
-      link: true,
-      eventDate: true,
-      caption: true,
-      type: true,
-      price: true,
-      rating: true,
-      eID,
+    const required = SPECIFICATIONS.Article.required;
+    const options = SPECIFICATIONS.Article.options;
+    const specification = {};
+    required.forEach((el) => (specification[el] = true));
+    options.forEach((el) => {
+      if (data.includes(el)) specification[el] = true;
     });
+    const specs = new Spec({ ...specification, eID });
     await specs.save();
   } catch (e) {
     console.log(e.message);
@@ -118,18 +103,28 @@ ArticleSchema.statics.SetSpecification = async (eID) => {
   }
 };
 
-ArticleSchema.pre("remove", async (next) => {
-  const article = this;
+ArticleSchema.pre("remove", async function (next) {
+  const cn = this;
   try {
-    const cn = await Article.find(
-      {
-        eID: article["eID"],
-        priority: { $gte: article.priority },
-        type: article.type,
-      },
-      ["_id", "priority"]
-    );
-    for (const o of cn) {
+    let cns;
+    const specs = await Spec.findOne({ eID: cn["eID"] }, ["type"], {
+      lean: true,
+    });
+    console.log(specs);
+
+    if (specs["type"] == true) {
+      cns = await Article.find({
+        eID: cn.eID,
+        type: cn.type,
+        priority: { $gte: cn.priority },
+      });
+    } else {
+      cns = await Article.find({
+        eID: cn.eID,
+        priority: { $gte: cn.priority },
+      });
+    }
+    for (const o of cns) {
       await Article.updateOne({ _id: o._id }, { priority: o.priority - 1 });
     }
     return next();

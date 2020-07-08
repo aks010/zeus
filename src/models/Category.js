@@ -1,6 +1,4 @@
 const mongoose = require("mongoose");
-// const autoIncrement = require("mongoose-auto-increment");
-const getDataFromModel = require("../shared/utils/helper");
 const Utils = require("../shared/utils/helper");
 const Spec = require("../models/Type/Spec");
 
@@ -36,7 +34,10 @@ CategorySchema.statics.sendData = async (eID) => {
     let res = [];
 
     for (const o of categoryList) {
-      let { error, data } = await getDataFromModel(o["childModel"], o["_id"]); /// TEST FOR ERROR THROW FROM FUNCTION
+      let { error, data } = await Utils.getDataFromModel(
+        o["childModel"],
+        o["_id"]
+      ); /// TEST FOR ERROR THROW FROM FUNCTION
       if (error != null) throw new Error(error);
       let obj = {};
       obj.items = data; // array

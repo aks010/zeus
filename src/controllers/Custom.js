@@ -1,6 +1,7 @@
-const Article = require("../models/Type/Article");
+const Custom = require("../models/Type/Custom");
 const Spec = require("../models/Type/Spec");
 const Category = require("../models/Category");
+const Banner = require("../models/Banner");
 
 const MODELS = require("../shared/constants");
 
@@ -25,7 +26,7 @@ const List = async (req, res) => {
       if (value === true) resSpecs.push(key);
     }
 
-    const cns = await Article.find({ eID: req.params.id }, resSpecs, {
+    const cns = await Custom.find({ eID: req.params.id }, resSpecs, {
       sort: { priority: 1 },
     });
     let data;
@@ -54,7 +55,7 @@ const List = async (req, res) => {
   }
 };
 
-/// GET ARTICLE /:cID/:id
+/// GET CUSTOM /:cID/:id
 const GetItem = async (req, res) => {
   if (!req.params.id || !req.params.cID)
     return res.status(412).send({
@@ -76,7 +77,7 @@ const GetItem = async (req, res) => {
     for (const [key, value] of Object.entries(cn)) {
       if (value === true) resSpecs.push(key);
     }
-    const o = await Article.findOne({ _id: req.params.id }, resSpecs);
+    const o = await Custom.find({ _id: req.params.id }, resSpecs);
     return res.send({ message: "Item Fetched", status: 200, data: o });
   } catch (e) {
     console.log(e);
@@ -84,29 +85,7 @@ const GetItem = async (req, res) => {
   }
 };
 
-// VIEW SPECS
-
-const ViewSpecification = async (req, res) => {
-  try {
-    let data = {};
-    data["required"] = [
-      "title",
-      "imgLink",
-      "link",
-      "eventDate",
-      "caption",
-      "type",
-    ];
-    data["options"] = ["price", "rating"];
-    return res.send({ message: "Successfully Fetched Specifications!", data });
-  } catch (e) {
-    console.log(e.message);
-    return res.status(500).send({ message: e.message, status: e.code });
-  }
-};
-
 // LIST SPECS WITH OPTIONS AND DISABLED /:id
-
 const ListSpecification = async (req, res) => {
   if (!req.params.id)
     return res
@@ -122,25 +101,18 @@ const ListSpecification = async (req, res) => {
         .status(500)
         .send({ message: "Category Specification not found!!", status: 500 });
 
-    let isCategoryArticle = await Category.findOne(
+    let isCategoryModel = await Category.findOne(
       { _id: req.params.id },
       ["childModel"],
       { lean: true }
     );
-    if (isCategoryArticle && isCategoryArticle.childModel !== MODELS.ARTICLE)
+    if (isCategoryModel.childModel !== MODELS.CUSTOM)
       return res.status(400).send({
         message: `Model and Category Model does not match!`,
         status: 400,
       });
     let data = {};
-    data["required"] = [
-      "title",
-      "imgLink",
-      "link",
-      "eventDate",
-      "caption",
-      "type",
-    ];
+    data["required"] = [];
     data["options"] = [];
     for (const [key, value] of Object.entries(specs)) {
       if (value === true)
@@ -161,7 +133,7 @@ const UpdateSpecificaiton = async (req, res) => {
       .status(412)
       .send({ message: `Please provide Category id`, status: 412 });
   let updates = Object.keys(req.body);
-  const allowedUpdates = ["price", "rating"];
+  const allowedUpdates = ["eventDate", "type", "price", "rating"];
   const isValidOperation = updates.every((update) =>
     allowedUpdates.includes(update)
   );
@@ -178,24 +150,24 @@ const UpdateSpecificaiton = async (req, res) => {
         .status(500)
         .send({ message: "Category Specification not found!!", status: 500 });
 
-    let isCategoryArticle = await Category.findOne(
+    let isCategoryModel = await Category.findOne(
       { _id: req.params.id },
       ["childModel"],
       { lean: true }
     );
-    if (!isCategoryArticle) {
+    if (!isCategoryModel) {
       let isBannerModel = await Banner.findOne(
         { _id: req.params.id },
         ["model"],
         { lean: true }
       );
-      if (isBannerModel.model !== MODELS.ARTICLE) {
+      if (isBannerModel.childModel !== MODELS.CUSTOM) {
         return res.status(400).send({
-          message: `Model and Banner Model does not match!`,
+          message: `Model and Category Model does not match!`,
           status: 400,
         });
       }
-    } else if (isCategoryArticle.childModel !== MODELS.ARTICLE)
+    } else if (isCategoryModel.childModel !== MODELS.CUSTOM)
       return res.status(400).send({
         message: `Model and Category Model does not match!`,
         status: 400,
@@ -209,85 +181,6 @@ const UpdateSpecificaiton = async (req, res) => {
   } catch (e) {
     console.log(e.message);
     return res.status(500).send({ message: e.message, status: e.code });
-  }
-};
-
-// UPDATE MODEL PRIORITY /:EID/:id/:type
-const UpdateModelPriority = async (req, res) => {
-  console.log(req.body);
-  if (!req.params.EID || !req.params.id)
-    return res.status(412).send({
-      message: `Please provide ${!req.params.EID ? "parent id" : "item id"}`,
-      status: 412,
-    });
-  try {
-    const specs = await Spec.findOne({ eID: req.params.EID }, ["type"], {
-      lean: true,
-    });
-    if (!specs)
-      return res
-        .status(500)
-        .send({ message: "Category Specification not found!!", status: 500 });
-
-    let item;
-    if (specs["type"]) {
-      if (!req.params.type)
-        return res
-          .status(412)
-          .send({ message: `Please provide Item type`, status: 412 });
-    }
-    item = await Article.findOne({ _id: req.params.id });
-    if (!item)
-      return res
-        .status(400)
-        .send({ message: "Item does not exist!", status: 400 });
-
-    let cns;
-    console.log("HOLA");
-    console.log(item.priority);
-    console.log(req.body.priority);
-    if (req.body.priority > item.priority) {
-      console.log("END");
-      if (specs["type"])
-        cns = await Article.find({
-          eID: req.params.EID,
-          type: req.params.type,
-          priority: { $lte: req.body.priority, $gte: item.priority + 1 },
-        });
-      else
-        cns = await Article.find({
-          eID: req.params.EID,
-          priority: { $lte: req.body.priority, $gte: item.priority + 1 },
-        });
-      for (const o of cns) {
-        await Article.updateOne({ _id: o._id }, { priority: o.priority - 1 });
-      }
-      console.log("HOLA2");
-    } else {
-      if (specs["type"])
-        cns = await Article.find({
-          eID: req.params.EID,
-          type: req.params.type,
-          priority: { $gte: req.body.priority, $lte: item.priority - 1 },
-        });
-      else
-        cns = await Article.find({
-          eID: req.params.EID,
-          priority: { $gte: req.body.priority, $lte: item.priority - 1 },
-        });
-      for (const o of cns) {
-        await Article.updateOne({ _id: o._id }, { priority: o.priority + 1 });
-      }
-    }
-    await Article.updateOne(
-      { _id: req.params.id },
-      { priority: req.body.priority }
-    );
-
-    res.send({ message: `Priority Updated!`, status: 200 });
-  } catch (e) {
-    console.log(e.message);
-    res.status(500).json({ message: e.message, status: e.code });
   }
 };
 
@@ -319,13 +212,13 @@ const UpdatePriority = async (req, res) => {
         return res
           .status(412)
           .send({ message: `Please provide Item type`, status: 412 });
-      allowedIds = await Article.find(
+      allowedIds = await Custom.find(
         { eID: req.params.id, type: req.params.type },
         ["_id"],
         { lean: true }
       );
     } else {
-      allowedIds = await Article.find({ eID: req.params.id }, ["_id"]);
+      allowedIds = await Custom.find({ eID: req.params.id }, ["_id"]);
     }
     let allowedUpdates = [];
     // console.log(allowedIds);
@@ -352,7 +245,7 @@ const UpdatePriority = async (req, res) => {
     }
 
     for (const o of cn) {
-      await Article.findOneAndUpdate(
+      await Custom.findOneAndUpdate(
         { _id: o },
         { priority: req.body[o] - min }
       );
@@ -374,8 +267,7 @@ const UpdateItem = async (req, res) => {
 
   try {
     let updates = Object.keys(req.body);
-    console.log(updates);
-    let cn = await Article.findOne({ _id: req.params.id });
+    let cn = await Custom.findOne({ _id: req.params.id });
     if (!cn)
       return res
         .status(400)
@@ -393,7 +285,6 @@ const UpdateItem = async (req, res) => {
     for (const [key, value] of Object.entries(specs)) {
       if (value === true) resSpecs.push(key);
     }
-    console.log(resSpecs);
     const allowedUpdates = resSpecs;
     // console.log(allowedUpdates);
     const isValidOperation = updates.every((update) =>
@@ -408,18 +299,16 @@ const UpdateItem = async (req, res) => {
     updates.forEach((update) => (cn[update] = req.body[update]));
     let isDuplicate;
     if (specs["type"] == true) {
-      if (req.body.title)
-        isDuplicate = await Article.findOne({
-          title: cn.title,
-          type: cn.type,
-          eID: cn.eID,
-        });
+      isDuplicate = await Custom.findOne({
+        title: cn.title,
+        type: cn.type,
+        eID: cn.eID,
+      });
     } else {
-      if (req.body.title)
-        isDuplicate = await Article.findOne({
-          title: cn.title,
-          eID: cn.eID,
-        });
+      isDuplicate = await Custom.findOne({
+        title: cn.title,
+        eID: cn.eID,
+      });
     }
 
     if (isDuplicate && isDuplicate["eID"] != cn.eID)
@@ -447,6 +336,28 @@ const Create = async (req, res) => {
     });
   try {
     let cn;
+    let isCategoryModel = await Category.findOne(
+      { _id: req.params.id },
+      ["childModel"],
+      { lean: true }
+    );
+    if (!isCategoryModel) {
+      let isBannerModel = await Banner.findOne(
+        { _id: req.params.id },
+        ["model"],
+        { lean: true }
+      );
+      if (isBannerModel.childModel !== MODELS.CUSTOM) {
+        return res.status(400).send({
+          message: `Model and Category Model does not match!`,
+          status: 400,
+        });
+      }
+    } else if (isCategoryModel.childModel !== MODELS.CUSTOM)
+      return res.status(400).send({
+        message: `Model and Category Model does not match!`,
+        status: 400,
+      });
     const specs = await Spec.findOne(
       { eID: req.params.id },
       ["-createdAt", "-updatedAt", "-priority"],
@@ -465,29 +376,30 @@ const Create = async (req, res) => {
           .status(412)
           .send({ message: `Please provide Item type`, status: 412 });
 
-      cn = await Article.findOne({
+      cn = await Custom.findOne({
         title: req.body.title,
         eID: req.params.id,
         type: req.params.type,
       });
     } else {
-      cn = await Article.findOne({
+      cn = await Custom.findOne({
         title: req.body.title,
         eID: req.params.id,
       });
     }
 
     if (!cn) {
-      cn = new Article({ ...req.body });
+      cn = new Custom({ ...req.body });
       if (specs["type"] == true) {
-        await Article.countDocuments(
+        await Custom.countDocuments(
           { eID: req.params.id, type: req.params.type },
           function (err, c) {
             cn.priority = c;
           }
         );
+        cn.type = req.params.type;
       } else {
-        await Article.countDocuments({ eID: req.params.id }, function (err, c) {
+        await Custom.countDocuments({ eID: req.params.id }, function (err, c) {
           cn.priority = c;
         });
       }
@@ -519,14 +431,13 @@ const Remove = async (req, res) => {
       status: 412,
     });
   try {
-    const cn = await Article.findOne({
+    const cn = await Custom.findOne({
       _id: req.params.id,
     });
     if (!cn)
       return res
         .status(400)
         .send({ message: `Item does not exist!`, status: 400 });
-    console.log(cn);
     await cn.remove();
 
     res.send({ message: `Item Removed Successfully!`, status: 200 });
@@ -544,11 +455,13 @@ const RemoveType = async (req, res) => {
       status: 412,
     });
   try {
-    const cn = await Article.deleteMany({
+    const cn = await Custom.deleteMany({
       eID: req.params.cID,
       type: req.params.type,
     });
     console.log(cn);
+    if (cn.deletedCount == 0)
+      return res.status(200).send({ message: "No item found!", status: 200 });
     res.send({ message: `Items Removed Successfully!`, status: 200 });
   } catch (e) {
     console.log(e.message);
@@ -563,7 +476,6 @@ module.exports = {
   ListSpecification,
   UpdateSpecificaiton,
   UpdateItem,
-  UpdateModelPriority,
   UpdatePriority,
   Remove,
   RemoveType,

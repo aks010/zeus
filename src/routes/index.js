@@ -2,12 +2,9 @@ const express = require("express");
 const router = express.Router();
 
 router.use("/banners", require("./banners"));
-router.use("/microservices", require("./microservice"));
-router.use("/counters", require("./counter"));
-router.use("/buyselltools", require("./buySellTool"));
-router.use("/browsecategory", require("./browseCategory"));
-router.use("/browsecategoryitem", require("./browseCategoryItem"));
-router.use("/articles", require("./articles"));
+router.use("/article", require("./articles"));
+router.use("/custom", require("./custom"));
 router.use("/category", require("./category"));
+router.use("/specs", require("./specifications"));
 
 module.exports = router;

@@ -1,5 +1,37 @@
 const Banners = require("../models/Banner");
 const Utils = require("../shared/utils/helper");
+const Specs = require("../models/Type/Spec");
+
+const ModelList = (req, res) => {
+  console.log("ENTER");
+  const data = Utils.modelList();
+  console.log(data);
+  res.send({ message: "Fetched Model Types!", status: 200, data: data });
+};
+
+const ReadBanner = async (req, res) => {
+  if (!req.params.id) {
+    return res
+      .status(412)
+      .send({ message: "Please provide banner id!", status: 412 });
+  }
+  try {
+    const banner = await Banners.findOne(
+      { _id: req.params.id },
+      ["-createdAt", "-updatedAt", "-priority"],
+      { lean: true }
+    );
+    if (!banner) {
+      return res
+        .status(400)
+        .send({ message: "Banner does not exist", status: 400 });
+    }
+    return res.send({ message: "Banner Fetched", status: 200, data: banner });
+  } catch (e) {
+    console.log(e.message);
+    return res.status(500).send("Something Went Wrong!");
+  }
+};
 
 const ListBanners = async (req, res) => {
   try {
@@ -36,6 +68,84 @@ const ListAllBanners = async (req, res) => {
   }
 };
 
+const UpdateBanner = async (req, res) => {
+  if (!req.params.id)
+    return res
+      .status(412)
+      .send({ message: `Please provide banner id`, status: 412 });
+
+  try {
+    let updates = Object.keys(req.body);
+    let cn = await Banners.findOne({ _id: req.params.id });
+    if (!cn)
+      return res
+        .status(400)
+        .send({ message: "Requested Banner does not exist!", status: 400 });
+    const allowedUpdates = ["title", "link"];
+
+    const isValidOperation = updates.every((update) =>
+      allowedUpdates.includes(update)
+    );
+    if (!isValidOperation) {
+      res.status(400).send({
+        message: "Requested Params are not allowed to update!",
+        status: 400,
+      });
+    }
+
+    updates.forEach((update) => (cn[update] = req.body[update]));
+    await cn.save();
+
+    return res.send({
+      message: "Banner Updated Successfully!",
+      status: 200,
+      data: cn,
+    });
+  } catch (e) {
+    console.log(e.message);
+    return res.status(500).send({ message: e.message, status: e.code });
+  }
+};
+
+const UpdatePriorityBanner = async (req, res) => {
+  console.log(req.params.id);
+  try {
+    const banner = await Banners.findOne({
+      _id: req.params.id,
+    });
+    if (!banner)
+      return res
+        .status(400)
+        .send({ message: "Banner does not exist!", status: 400 });
+    if (req.body.priority > banner.priority) {
+      const banners = await Banners.find({
+        priority: { $lte: req.body.priority, $gte: banner.priority + 1 },
+      });
+      for (const o of banners) {
+        await Banners.updateOne({ _id: o._id }, { priority: o.priority - 1 });
+      }
+    } else {
+      const num = Number(req.body.priority);
+      const banners = await Banners.find({
+        priority: { $gte: num, $lte: banner.priority - 1 },
+      });
+      for (const o of banners) {
+        await Banners.updateOne({ _id: o._id }, { priority: o.priority + 1 });
+      }
+    }
+
+    await Banners.updateOne(
+      { _id: req.params.id },
+      { priority: req.body.priority }
+    );
+    await banner.save();
+
+    res.send({ message: `Priority Updated!`, status: 200 });
+  } catch (e) {
+    console.log(e.message);
+    res.status(500).send({ message: e.message, status: 500 });
+  }
+};
 /// todo: UPDATING BANNER MODEL
 
 const UpdatePriority = async (req, res) => {
@@ -93,18 +203,29 @@ const CreateBanner = async (req, res) => {
 
     if (!banner) {
       banner = new Banners({ ...req.body });
+      banner.hasCategory = false;
       if (banner.model == "Category") banner.hasCategory = true;
-      if (banner.hasCategory == true && banner.model != "Category") {
-        return res.status(400).send({
-          message:
-            "Cannot Set 'hasCategory' true for non-Category Model Banner!",
+
+      if (!Utils.checkModelExistence(req.body.model)) {
+        res.status(400).send({
+          status: 400,
+          message: `Requested Model: ${req.body.model}, is not in DB! Please Ensure Correct Model Names`,
         });
       }
+
       await Banners.countDocuments({}, function (err, c) {
-        banner.priority = c;
+        if (!err) banner.priority = c;
+        else throw err;
       });
+
+      console.log(banner.priority);
       banner = await banner.save();
-      await Utils.setModelSpecification(req.body.model, banner._id, true);
+      if (banner.model != "Category")
+        await Specs.SetModelSpecification(
+          req.body.model,
+          banner._id,
+          req.body.specs // []
+        );
       res.send({
         message: `Created Banner`,
         status: 201,
@@ -150,9 +271,13 @@ const RemoveBanner = async (req, res) => {
 };
 
 module.exports = {
+  ModelList,
+  ReadBanner,
   ListBanners,
   CreateBanner,
+  UpdateBanner,
   UpdatePriority,
+  UpdatePriorityBanner,
   RemoveBanner,
   ListAllBanners,
 };

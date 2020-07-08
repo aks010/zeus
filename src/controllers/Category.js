@@ -1,5 +1,34 @@
 const Category = require("../models/Category");
 const Utils = require("../shared/utils/helper");
+const Specs = require("../models/Type/Spec");
+
+const ReadCategory = async (req, res) => {
+  if (!req.params.id) {
+    return res
+      .status(412)
+      .send({ message: "Please provide category id!", status: 412 });
+  }
+  try {
+    const category = await Category.findOne(
+      { _id: req.params.id },
+      ["-createdAt", "-updatedAt", "-priority"],
+      { lean: true }
+    );
+    if (!category) {
+      return res
+        .status(400)
+        .send({ message: "Category does not exist", status: 400 });
+    }
+    return res.send({
+      message: "Category Fetched",
+      status: 200,
+      data: category,
+    });
+  } catch (e) {
+    console.log(e.message);
+    return res.status(500).send("Something Went Wrong!");
+  }
+};
 
 /// List Categories of Banner /:id
 const ListCategories = async (req, res) => {
@@ -146,6 +175,48 @@ const UpdateCategory = async (req, res) => {
   }
 };
 
+/// UPDATE CATEGORY PRIORITY (indvl) /:BID/:CID
+const UpdateCategoryPriority = async (req, res) => {
+  console.log(req.params.CID);
+  try {
+    const category = await Category.findOne({
+      _id: req.params.CID,
+      eID: req.params.BID,
+    });
+    if (!category)
+      return res
+        .status(400)
+        .send({ message: "Category does not exist!", status: 400 });
+
+    if (req.body.priority > category.priority) {
+      const cns = await Category.find({
+        eID: req.params.BID,
+        priority: { $lte: req.body.priority, $gte: category.priority + 1 },
+      });
+      for (const o of cns) {
+        await Category.updateOne({ _id: o._id }, { priority: o.priority - 1 });
+      }
+    } else {
+      const cns = await Category.find({
+        priority: { $gte: req.body.priority, $lte: category.priority - 1 },
+      });
+      for (const o of cns) {
+        await Category.updateOne({ _id: o._id }, { priority: o.priority + 1 });
+      }
+    }
+    await Category.updateOne(
+      { _id: req.params.CID },
+      { priority: req.body.priority }
+    );
+    // await category.save();
+
+    res.send({ message: `Priority Updated!`, status: 200 });
+  } catch (e) {
+    console.log(e.message);
+    res.status(500).send({ message: e.message, status: 500 });
+  }
+};
+
 // UPDATE PRIORITY OF CATEGORY IN BANNER /:id
 const UpdatePriority = async (req, res) => {
   if (!req.params.id)
@@ -222,9 +293,10 @@ const CreateCategory = async (req, res) => {
         category.priority = c;
       });
       category = await category.save();
-      const error = await Utils.setModelSpecification(
+      const error = await Specs.SetModelSpecification(
         req.body.childModel,
-        category._id
+        category._id,
+        req.body.specs
       );
       if (error.error != null) throw new Error(error.error);
       return res.send({
@@ -277,11 +349,13 @@ const RemoveCategory = async (req, res) => {
 };
 
 module.exports = {
+  ReadCategory,
   ListAll,
   ListCategories,
   ListCategoryItems,
   CreateCategory,
   UpdateCategory,
+  UpdateCategoryPriority,
   UpdatePriority,
   RemoveCategory,
 };
