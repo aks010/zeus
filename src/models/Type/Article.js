@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const autoIncrement = require("mongoose-auto-increment");
 const Spec = require("./Spec");
+const SPECIFICATIONS = require("../../shared/specifications");
+
 const ArticleSchema = new mongoose.Schema(
   {
     title: {
@@ -81,25 +83,19 @@ ArticleSchema.statics.sendData = async (eID) => {
   }
 };
 
-ArticleSchema.statics.SetSpecification = async (eID) => {
+ArticleSchema.statics.SetSpecification = async (eID, data) => {
   /// UPDATE FOR USE IN BANNER WITHOUT CATEGORY USING ISBANNER FIELD
   try {
     if (!eID || eID == "")
       throw new Error("Cannot Set Specification without ID");
-    const specs = new Spec({
-      title: true,
-      imgLink: true,
-      link: true,
-      eventDate: true,
-      caption: true,
-      type: true,
-      price: true,
-      rating: true,
-      eID,
-      icon: false,
-      color: false,
-      count: false,
+    const required = SPECIFICATIONS.Article.required;
+    const options = SPECIFICATIONS.Article.options;
+    const specification = {};
+    required.forEach((el) => (specification[el] = true));
+    options.forEach((el) => {
+      if (data.includes(el)) specification[el] = true;
     });
+    const specs = new Spec({ ...specification, eID });
     await specs.save();
   } catch (e) {
     console.log(e.message);

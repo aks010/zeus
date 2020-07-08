@@ -86,31 +86,8 @@ const GetItem = async (req, res) => {
 
 // VIEW SPECS
 
-const ListSpecification = async (req, res) => {
-  if (!req.params.id)
-    return res
-      .status(412)
-      .send({ message: `Please provide Category id`, status: 412 });
-
+const ViewSpecification = async (req, res) => {
   try {
-    const specs = await Spec.findOne({ eID: req.params.id }, ["-priority"], {
-      lean: true,
-    });
-    if (!specs)
-      return res
-        .status(500)
-        .send({ message: "Category Specification not found!!", status: 500 });
-
-    let isCategoryArticle = await Category.findOne(
-      { _id: req.params.id },
-      ["childModel"],
-      { lean: true }
-    );
-    if (isCategoryArticle && isCategoryArticle.childModel !== MODELS.ARTICLE)
-      return res.status(400).send({
-        message: `Model and Category Model does not match!`,
-        status: 400,
-      });
     let data = {};
     data["required"] = [
       "title",
@@ -120,12 +97,7 @@ const ListSpecification = async (req, res) => {
       "caption",
       "type",
     ];
-    data["options"] = [];
-    for (const [key, value] of Object.entries(specs)) {
-      if (value === true)
-        if (!data["required"].includes(key)) data["options"].push(key);
-    }
-
+    data["options"] = ["price", "rating"];
     return res.send({ message: "Successfully Fetched Specifications!", data });
   } catch (e) {
     console.log(e.message);

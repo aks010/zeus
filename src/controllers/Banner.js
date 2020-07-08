@@ -1,5 +1,6 @@
 const Banners = require("../models/Banner");
 const Utils = require("../shared/utils/helper");
+const Specs = require("../models/Type/Spec");
 
 const ModelList = (req, res) => {
   console.log("ENTER");
@@ -202,13 +203,8 @@ const CreateBanner = async (req, res) => {
 
     if (!banner) {
       banner = new Banners({ ...req.body });
+      banner.hasCategory = false;
       if (banner.model == "Category") banner.hasCategory = true;
-      if (banner.hasCategory == true && banner.model != "Category") {
-        return res.status(400).send({
-          message:
-            "Cannot Set 'hasCategory' true for non-Category Model Banner!",
-        });
-      }
 
       if (!Utils.checkModelExistence(req.body.model)) {
         res.status(400).send({
@@ -221,9 +217,15 @@ const CreateBanner = async (req, res) => {
         if (!err) banner.priority = c;
         else throw err;
       });
+
       console.log(banner.priority);
       banner = await banner.save();
-      await Utils.setModelSpecification(req.body.model, banner._id);
+      if (banner.model != "Category")
+        await Specs.SetModelSpecification(
+          req.body.model,
+          banner._id,
+          req.body.specs // []
+        );
       res.send({
         message: `Created Banner`,
         status: 201,

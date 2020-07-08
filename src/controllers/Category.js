@@ -1,5 +1,6 @@
 const Category = require("../models/Category");
 const Utils = require("../shared/utils/helper");
+const Specs = require("../models/Type/Spec");
 
 const ReadCategory = async (req, res) => {
   if (!req.params.id) {
@@ -292,9 +293,10 @@ const CreateCategory = async (req, res) => {
         category.priority = c;
       });
       category = await category.save();
-      const error = await Utils.setModelSpecification(
+      const error = await Specs.SetModelSpecification(
         req.body.childModel,
-        category._id
+        category._id,
+        req.body.specs
       );
       if (error.error != null) throw new Error(error.error);
       return res.send({
