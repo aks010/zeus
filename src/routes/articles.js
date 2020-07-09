@@ -1,10 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const ArticleController = require("../controllers/Article");
-
-router.use(function timeLog(req, res, next) {
-  next();
-});
+const auth = require("../middleware/auth");
+router.use(auth);
 
 router.get("/item/:cID/:id", ArticleController.GetItem); // id = article_id
 router.post("/create/:id", ArticleController.Create); // id = categoryid  type = article_type (null/type)
