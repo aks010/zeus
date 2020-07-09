@@ -73,6 +73,26 @@ CategorySchema.pre("remove", async function (next) {
   }
 });
 
+CategorySchema.statics.removeDataFromCategories = async (ID) => {
+  /// ID = bannerID
+  console.log("asfasf");
+  try {
+    console.log(Category);
+    // console.log(cool);
+    const categoryList = await Category.find({ eID: ID }, ["childModel"]);
+
+    console.log("asfasfasd");
+    console.log(categoryList);
+    for (const o of categoryList) {
+      await o.remove();
+    }
+    return { error: null, message: "Successfully Removed Category!" };
+  } catch (e) {
+    console.log(e);
+    return { error: e.message, message: null };
+  }
+};
+
 // autoIncrement.initialize(mongoose.connection);
 // CategorySchema.plugin(autoIncrement.plugin, "Category");
 

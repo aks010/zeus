@@ -2,9 +2,8 @@ const express = require("express");
 const router = express.Router();
 const SpecificationController = require("../controllers/Specification");
 
-router.use(function timeLog(req, res, next) {
-  next();
-});
+const auth = require("../middleware/auth");
+router.use(auth);
 
 router.get("/list/:id/:model", SpecificationController.ListSpecification);
 router.patch("/update/:id/:model", SpecificationController.UpdateSpecificaiton);

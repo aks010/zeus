@@ -2,9 +2,8 @@ const express = require("express");
 const router = express.Router();
 const CategoryController = require("../controllers/Category");
 
-router.use(function timeLog(req, res, next) {
-  next();
-});
+const auth = require("../middleware/auth");
+router.use(auth);
 
 router.get("/read/:id", CategoryController.ReadCategory);
 router.get("/list/:id", CategoryController.ListCategories); // id = banner_id

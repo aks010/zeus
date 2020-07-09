@@ -67,7 +67,7 @@ BannerSchema.pre("remove", async function (next) {
   const banner = this;
   try {
     if (banner["hasCategory"]) {
-      const { error, message } = await Utils.removeDataFromCategories(
+      const { error, message } = await Category.removeDataFromCategories(
         banner["_id"]
       );
       if (!error) next();

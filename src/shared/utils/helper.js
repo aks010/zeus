@@ -6,6 +6,8 @@ const Testimonial = require("../../models/Type/Testimonial");
 const Vehicle = require("../../models/Type/Vehicle");
 const WithIcon = require("../../models/Type/WithIcon");
 const Category = require("../../models/Category");
+const Banner = require("../../models/Banner");
+// const cool = require("../../models/Cool");
 
 const modelList = () => {
   const data = Object.values(MODELS);
@@ -15,23 +17,24 @@ const modelList = () => {
 };
 
 const checkModelExistence = (model) => {
-  switch (model) {
-    case MODELS.ARTICLE:
+  switch (model.toLowerCase()) {
+    case MODELS.ARTICLE.toLowerCase():
       return true;
-    case MODELS.CUSTOM:
+    case MODELS.CUSTOM.toLowerCase():
       return true;
-    case MODELS.VEHICLE:
+    case MODELS.VEHICLE.toLowerCase():
       return true;
-    case MODELS.TESTIMONIAL:
+    case MODELS.TESTIMONIAL.toLowerCase():
       return true;
-    case MODELS.WITHICON:
+    case MODELS.WITHICON.toLowerCase():
       return true;
-    case MODELS.CATEGORY:
+    case MODELS.CATEGORY.toLowerCase():
       return true;
     default:
       return false;
   }
 };
+
 const setModelSpecification = async (model, ID) => {
   try {
     console.log("ID: " + ID);
@@ -110,28 +113,28 @@ const getDataFromModel = async (model, ID) => {
 
 // FIX FOR ISBANNER = true
 
-const removeDataFromModel = async (model, categoryID) => {
+const removeDataFromModel = async (model, eID) => {
   try {
     console.log("ENTERNED");
     switch (model) {
       case MODELS.ARTICLE: {
-        await Article.deleteMany({ categoryID }); // array
+        await Article.deleteMany({ eID }); // array
         break;
       }
       case MODELS.CUSTOM: {
-        await Custom.deleteMany({ categoryID });
+        await Custom.deleteMany({ eID });
         break;
       }
       case MODELS.VEHICLE: {
-        await Vehicle.deleteMany({ categoryID });
+        await Vehicle.deleteMany({ eID });
         break;
       }
       case MODELS.TESTIMONIAL: {
-        await Testimonial.deleteMany({ categoryID });
+        await Testimonial.deleteMany({ eID });
         break;
       }
       case MODELS.WITHICON: {
-        await WithIcon.deleteMany({ categoryID });
+        await WithIcon.deleteMany({ eID });
         break;
       }
       default:
@@ -149,8 +152,12 @@ const removeDataFromCategories = async (ID) => {
   /// ID = bannerID
   console.log("asfasf");
   try {
+    console.log(Category);
+    // console.log(cool);
     const categoryList = await Category.find({ eID: ID }, ["childModel"]);
+
     console.log("asfasfasd");
+    console.log(categoryList);
     for (const o of categoryList) {
       await o.remove();
     }

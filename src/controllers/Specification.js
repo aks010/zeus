@@ -13,14 +13,14 @@ const ViewSpecification = async (req, res) => {
       .status(412)
       .send({ message: `Please provide model type`, status: 412 });
   if (Utils.checkModelExistence(model)) {
-    if (!SPECIFICATIONS[model])
+    if (!SPECIFICATIONS[model.toLowerCase()])
       return res.status(500).send({
         message: `${model} specification parmas not defined in server!`,
         status: 500,
       });
     return res.send({
       message: "Successfully Fetched Specifications!",
-      data: SPECIFICATIONS[model],
+      data: SPECIFICATIONS[model.toLowerCase()],
     });
   }
 
@@ -40,7 +40,7 @@ const ListSpecification = async (req, res) => {
       .send({ message: `Please provide model type`, status: 412 });
 
   if (Utils.checkModelExistence(model)) {
-    if (!SPECIFICATIONS[model])
+    if (!SPECIFICATIONS[model.toLowerCase()])
       return res.status(500).send({
         message: `${model} specification parmas not defined in server!`,
         status: 500,
@@ -52,7 +52,7 @@ const ListSpecification = async (req, res) => {
       .send({ message: `Please provide model type`, status: 412 });
 
   if (Utils.checkModelExistence(model)) {
-    if (!SPECIFICATIONS[model])
+    if (!SPECIFICATIONS[model.toLowerCase()])
       return res.status(500).send({
         message: `${model} specification parmas not defined in server!`,
         status: 500,
@@ -73,7 +73,7 @@ const ListSpecification = async (req, res) => {
           .send({ message: "Parent Specification not found!!", status: 500 });
 
       let data = {};
-      data["required"] = SPECIFICATIONS[model].required;
+      data["required"] = SPECIFICATIONS[model.toLowerCase()].required;
       data["options"] = [];
       for (const [key, value] of Object.entries(specs)) {
         if (value === true)
@@ -106,7 +106,7 @@ const UpdateSpecificaiton = async (req, res) => {
       .send({ message: `Please provide model type`, status: 412 });
 
   if (Utils.checkModelExistence(model)) {
-    if (!SPECIFICATIONS[model])
+    if (!SPECIFICATIONS[model.toLowerCase()])
       return res.status(500).send({
         message: `${model} specification parmas not defined in server!`,
         status: 500,
@@ -119,7 +119,7 @@ const UpdateSpecificaiton = async (req, res) => {
 
   let updates = Object.keys(req.body);
 
-  const allowedUpdates = SPECIFICATIONS[model].options;
+  const allowedUpdates = SPECIFICATIONS[model.toLowerCase()].options;
   const isValidOperation = updates.every((update) =>
     allowedUpdates.includes(update)
   );

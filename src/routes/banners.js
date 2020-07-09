@@ -1,10 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const BannerController = require("../controllers/Banner");
-
-router.use(function timeLog(req, res, next) {
-  next();
-});
+const auth = require("../middleware/auth");
+router.use(auth);
 
 router.get("/", BannerController.ListBanners);
 router.get("/all", BannerController.ListAllBanners);
