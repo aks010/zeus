@@ -24,7 +24,4 @@ router.patch("/update/:id", ArticleController.UpdateItem); // id = article_id
 router.delete("/remove/:id", ArticleController.Remove); // id = article_id
 router.delete("/remove/:cID/:type", ArticleController.RemoveType);
 
-router.get("/specs/:id", ArticleController.ListSpecification); // id = category_id
-router.patch("/specs/:id", ArticleController.UpdateSpecificaiton); // id = category_id
-
 module.exports = router;

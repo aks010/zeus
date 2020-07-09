@@ -7,7 +7,7 @@ const SpecSchema = new mongoose.Schema(
     title: {
       type: Boolean,
       required: true,
-      default: false,
+      default: true,
     },
     imgLink: {
       type: Boolean,
@@ -19,6 +19,7 @@ const SpecSchema = new mongoose.Schema(
       required: true,
       default: false,
     },
+
     link: {
       type: Boolean,
       required: true,
@@ -40,6 +41,22 @@ const SpecSchema = new mongoose.Schema(
       default: false,
     },
     caption: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+
+    icon: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    color: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    count: {
       type: Boolean,
       required: true,
       default: false,
@@ -67,8 +84,8 @@ SpecSchema.statics.SetModelSpecification = async (model, eID, data = []) => {
     if (!model || model == "")
       throw new Error("Cannot Set Specification without ID");
     // model = model.toLowerCase();
-    const required = SPECIFICATIONS[model].required;
-    const options = SPECIFICATIONS[model].options;
+    const required = SPECIFICATIONS[model.toLowerCase()].required;
+    const options = SPECIFICATIONS[model.toLowerCase()].options;
     const specification = {};
     required.forEach((el) => (specification[el] = true));
     options.forEach((el) => {

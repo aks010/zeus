@@ -290,15 +290,16 @@ const CreateCategory = async (req, res) => {
       category = new Category({ ...req.body });
       category.eID = req.params.id;
       await Category.countDocuments({ eID: req.params.id }, function (err, c) {
-        category.priority = c;
+        if (!err) category.priority = c;
+        else throw err;
       });
       category = await category.save();
-      const error = await Specs.SetModelSpecification(
+      await Specs.SetModelSpecification(
         req.body.childModel,
         category._id,
         req.body.specs
       );
-      if (error.error != null) throw new Error(error.error);
+
       return res.send({
         message: `Created Category`,
         status: 201,

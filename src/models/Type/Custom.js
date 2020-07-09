@@ -57,19 +57,6 @@ CustomSchema.statics.sendData = async (eID) => {
   }
 };
 
-CustomSchema.statics.SetSpecification = async (eID) => {
-  /// UPDATE FOR USE IN BANNER WITHOUT CATEGORY USING ISBANNER FIELD
-  try {
-    if (!eID || eID == "")
-      throw new Error("Cannot Set Specification without ID");
-    const specs = new Spec({ eID });
-    await specs.save();
-  } catch (e) {
-    console.log(e.message);
-    throw new Error(e.message);
-  }
-};
-
 CustomSchema.pre("remove", async (next) => {
   const article = this;
   try {
