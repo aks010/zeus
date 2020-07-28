@@ -8,6 +8,8 @@ const auth = async (req, res, next) => {
       token,
       process.env.JWT_SECRET_KEY || "MakeItHappen"
     );
+    // console.log("PRINT");
+    // console.log(token);
     const user = await Users.findOne({
       _id: decoded._id,
       "tokens.token": token,
@@ -19,6 +21,7 @@ const auth = async (req, res, next) => {
     req.user = user;
     next();
   } catch (e) {
+    console.log(e);
     res.status(401).send({ error: "Please authorize!" });
   }
 };

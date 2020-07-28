@@ -93,6 +93,7 @@ SpecSchema.statics.SetModelSpecification = async (model, eID, data = []) => {
     });
     const specs = new Spec({ ...specification, eID });
     await specs.save();
+    console.log("SAVED SPECIFICATIONS");
   } catch (e) {
     console.log(e.message);
     throw new Error(e.message);

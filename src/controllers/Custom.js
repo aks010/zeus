@@ -77,7 +77,7 @@ const GetItem = async (req, res) => {
     for (const [key, value] of Object.entries(cn)) {
       if (value === true) resSpecs.push(key);
     }
-    const o = await Custom.find({ _id: req.params.id }, resSpecs);
+    const o = await Custom.findOne({ _id: req.params.id }, resSpecs);
     return res.send({ message: "Item Fetched", status: 200, data: o });
   } catch (e) {
     console.log(e);
@@ -336,28 +336,6 @@ const Create = async (req, res) => {
     });
   try {
     let cn;
-    let isCategoryModel = await Category.findOne(
-      { _id: req.params.id },
-      ["childModel"],
-      { lean: true }
-    );
-    if (!isCategoryModel) {
-      let isBannerModel = await Banner.findOne(
-        { _id: req.params.id },
-        ["model"],
-        { lean: true }
-      );
-      if (isBannerModel.childModel !== MODELS.CUSTOM) {
-        return res.status(400).send({
-          message: `Model and Category Model does not match!`,
-          status: 400,
-        });
-      }
-    } else if (isCategoryModel.childModel !== MODELS.CUSTOM)
-      return res.status(400).send({
-        message: `Model and Category Model does not match!`,
-        status: 400,
-      });
     const specs = await Spec.findOne(
       { eID: req.params.id },
       ["-createdAt", "-updatedAt", "-priority"],
