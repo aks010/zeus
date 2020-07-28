@@ -1,5 +1,7 @@
 const path = require("path");
 const express = require("express");
+const dotenv = require("dotenv");
+dotenv.config();
 const bodyParser = require("body-parser");
 var cors = require("cors");
 const routes = require("./routes");
@@ -18,4 +20,6 @@ app.use("/api", routes);
 app.post("/sd", (req, res) => {
   res.send(req.body);
 });
-app.listen(5000, () => console.log("Listening on port " + 5000));
+app.listen(process.env.PORT, () =>
+  console.log("Listening on port " + process.env.PORT)
+);
