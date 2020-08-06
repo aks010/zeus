@@ -1,14 +1,15 @@
 const mongoose = require("mongoose");
 const autoIncrement = require("mongoose-auto-increment");
+const Spec = require("./Spec");
 
 const TestimonialSchema = new mongoose.Schema(
   {
+    title: String,
     imgLink: String,
     link: String,
     caption: String,
     type: {
       type: String,
-      required: true,
       lowercase: true,
     },
     eID: {
@@ -27,76 +28,64 @@ const TestimonialSchema = new mongoose.Schema(
 );
 
 TestimonialSchema.statics.sendData = async (eID) => {
+  /// UPDATE THIS USING SPECIFICATION
   try {
-    const cn = await Testimonial.find(
-      { eID },
-      [
-        "eID",
-        "type",
-        "link",
-        "caption",
-        "imgLink",
-        "reviewerOcc",
-        "reviewerAddress",
-        "review",
-        "reviewer",
-        "priority",
-      ],
-      { sort: { priority: 1 } }
-    );
+    let cn = await Spec.findOne({ eID }, ["-createdAt", "-updatedAt"], {
+      lean: true,
+    });
+    if (!cn) throw new Error("Category Specification not found!!");
+    let resSpecs = [];
+    for (const [key, value] of Object.entries(cn)) {
+      if (value === true) resSpecs.push(key);
+    }
 
-    let rs = [];
-    for (const o of cn) {
-      switch (o["type"]) {
-        case "video": {
-          rs[o["type"]].push({
-            eID: o["eID"],
-            type: o["type"],
-            link: o["link"],
-            caption: o["caption"],
-            imgLink: o["imgLink"],
-          });
-          break;
+    const cns = await Testimonial.find({ eID }, resSpecs, {
+      sort: { priority: 1 },
+    });
+    let data;
+    if (cn["type"] == true) {
+      data = {};
+      for (const o of cns) {
+        if (!data[o["type"]]) {
+          data[o["type"]] = [];
         }
-        case "promotion": {
-          rs[o["type"]].push({
-            eID: o["eID"],
-            type: o["type"],
-            link: o["link"],
-            imgLink: o["imgLink"],
-          });
-        }
-        case "review": {
-          rs[o["type"]].push({
-            eID: o["eID"],
-            type: o["type"],
-            review: o["review"],
-            reviewer: o["reviewer"],
-            reviewerAddress: o["reviewerAddress"],
-            reviewerOcc: o["reviewerOcc"],
-          });
-        }
+        data[o["type"]].push(o);
+      }
+    } else {
+      data = [];
+      for (const o of cns) {
+        data.push(o);
       }
     }
-    return rs;
+    return data;
   } catch (e) {
-    console.log("Testimonial Statics Error!");
+    console.log("Testimonial Statics Error");
     throw new Error(e.message);
   }
 };
 
-TestimonialSchema.pre("remove", async (next) => {
-  const testimonial = this;
+TestimonialSchema.pre("remove", async function (next) {
+  const cn = this;
   try {
-    const cn = await Testimonial.find(
-      {
-        eID: testimonial["eID"],
-        priority: { $gte: testimonial.priority },
-        type: testimonial.type,
-      },
-      ["_id", "priority"]
-    );
-    for (const o of cn) {
+    let cns;
+    const specs = await Spec.findOne({ eID: cn["eID"] }, ["type"], {
+      lean: true,
+    });
+    console.log(specs);
+
+    if (specs["type"] == true) {
+      cns = await Testimonial.find({
+        eID: cn.eID,
+        type: cn.type,
+        priority: { $gte: cn.priority },
+      });
+    } else {
+      cns = await Testimonial.find({
+        eID: cn.eID,
+        priority: { $gte: cn.priority },
+      });
+    }
+    for (const o of cns) {
       await Testimonial.updateOne({ _id: o._id }, { priority: o.priority - 1 });
     }
     return next();

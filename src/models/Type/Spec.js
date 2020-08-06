@@ -61,6 +61,11 @@ const SpecSchema = new mongoose.Schema(
       required: true,
       default: false,
     },
+    reviewerOcc: { type: Boolean, required: true, default: false },
+    reviewerAddress: { type: Boolean, required: true, default: false },
+    review: { type: Boolean, required: true, default: false },
+    reviewer: { type: Boolean, required: true, default: false },
+
     eID: {
       type: mongoose.Types.ObjectId,
       required: true,
