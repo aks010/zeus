@@ -332,6 +332,7 @@ const Create = async (req, res) => {
         .send({ message: "Category Specification not found!!", status: 500 });
     let allowedIds;
     if (specs["type"] == true) {
+      console.log(specs);
       if (!req.params.type)
         return res
           .status(412)

@@ -12,6 +12,7 @@ const CustomSchema = new mongoose.Schema(
     price: Number,
     eventDate: Date,
     caption: String,
+    rating: Number,
     type: String,
     eID: mongoose.Types.ObjectId,
     priority: Number,

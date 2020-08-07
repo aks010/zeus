@@ -77,15 +77,14 @@ CategorySchema.statics.removeDataFromCategories = async (ID) => {
   /// ID = bannerID
   console.log("asfasf");
   try {
-    console.log(Category);
-    // console.log(cool);
     const categoryList = await Category.find({ eID: ID }, ["childModel"]);
 
-    console.log("asfasfasd");
-    console.log(categoryList);
     for (const o of categoryList) {
       await o.remove();
     }
+
+    await Spec.deleteOne({ eID: ID });
+
     return { error: null, message: "Successfully Removed Category!" };
   } catch (e) {
     console.log(e);

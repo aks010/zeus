@@ -217,6 +217,7 @@ const CreateBanner = async (req, res) => {
         if (!err) banner.priority = c;
         else throw err;
       });
+      if (banner.priority === undefined) banner.priority = 0;
 
       console.log(banner.priority);
       banner = await banner.save();

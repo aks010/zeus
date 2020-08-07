@@ -1,4 +1,4 @@
-const Custom = require("../models/Type/Custom");
+const Testimonial = require("../models/Type/Testimonial");
 const Spec = require("../models/Type/Spec");
 const Category = require("../models/Category");
 
@@ -25,7 +25,7 @@ const List = async (req, res) => {
       if (value === true) resSpecs.push(key);
     }
 
-    const cns = await Custom.find({ eID: req.params.id }, resSpecs, {
+    const cns = await Testimonial.find({ eID: req.params.id }, resSpecs, {
       sort: { priority: 1 },
     });
     let data;
@@ -54,7 +54,7 @@ const List = async (req, res) => {
   }
 };
 
-/// GET ARTICLE /:cID/:id
+/// GET TESTIMONIAL /:cID/:id
 const GetItem = async (req, res) => {
   if (!req.params.id || !req.params.cID)
     return res.status(412).send({
@@ -76,7 +76,7 @@ const GetItem = async (req, res) => {
     for (const [key, value] of Object.entries(cn)) {
       if (value === true) resSpecs.push(key);
     }
-    const o = await Custom.findOne({ _id: req.params.id }, resSpecs);
+    const o = await Testimonial.findOne({ _id: req.params.id }, resSpecs);
     return res.send({ message: "Item Fetched", status: 200, data: o });
   } catch (e) {
     console.log(e);
@@ -108,7 +108,7 @@ const UpdateModelPriority = async (req, res) => {
           .status(412)
           .send({ message: `Please provide Item type`, status: 412 });
     }
-    item = await Custom.findOne({ _id: req.params.id });
+    item = await Testimonial.findOne({ _id: req.params.id });
     if (!item)
       return res
         .status(400)
@@ -121,37 +121,43 @@ const UpdateModelPriority = async (req, res) => {
     if (req.body.priority > item.priority) {
       console.log("END");
       if (specs["type"])
-        cns = await Custom.find({
+        cns = await Testimonial.find({
           eID: req.params.EID,
           type: req.params.type,
           priority: { $lte: req.body.priority, $gte: item.priority + 1 },
         });
       else
-        cns = await Custom.find({
+        cns = await Testimonial.find({
           eID: req.params.EID,
           priority: { $lte: req.body.priority, $gte: item.priority + 1 },
         });
       for (const o of cns) {
-        await Custom.updateOne({ _id: o._id }, { priority: o.priority - 1 });
+        await Testimonial.updateOne(
+          { _id: o._id },
+          { priority: o.priority - 1 }
+        );
       }
       console.log("HOLA2");
     } else {
       if (specs["type"])
-        cns = await Custom.find({
+        cns = await Testimonial.find({
           eID: req.params.EID,
           type: req.params.type,
           priority: { $gte: req.body.priority, $lte: item.priority - 1 },
         });
       else
-        cns = await Custom.find({
+        cns = await Testimonial.find({
           eID: req.params.EID,
           priority: { $gte: req.body.priority, $lte: item.priority - 1 },
         });
       for (const o of cns) {
-        await Custom.updateOne({ _id: o._id }, { priority: o.priority + 1 });
+        await Testimonial.updateOne(
+          { _id: o._id },
+          { priority: o.priority + 1 }
+        );
       }
     }
-    await Custom.updateOne(
+    await Testimonial.updateOne(
       { _id: req.params.id },
       { priority: req.body.priority }
     );
@@ -191,13 +197,13 @@ const UpdatePriority = async (req, res) => {
         return res
           .status(412)
           .send({ message: `Please provide Item type`, status: 412 });
-      allowedIds = await Custom.find(
+      allowedIds = await Testimonial.find(
         { eID: req.params.id, type: req.params.type },
         ["_id"],
         { lean: true }
       );
     } else {
-      allowedIds = await Custom.find({ eID: req.params.id }, ["_id"]);
+      allowedIds = await Testimonial.find({ eID: req.params.id }, ["_id"]);
     }
     let allowedUpdates = [];
     // console.log(allowedIds);
@@ -224,7 +230,7 @@ const UpdatePriority = async (req, res) => {
     }
 
     for (const o of cn) {
-      await Custom.findOneAndUpdate(
+      await Testimonial.findOneAndUpdate(
         { _id: o },
         { priority: req.body[o] - min }
       );
@@ -247,7 +253,7 @@ const UpdateItem = async (req, res) => {
   try {
     let updates = Object.keys(req.body);
     console.log(updates);
-    let cn = await Custom.findOne({ _id: req.params.id });
+    let cn = await Testimonial.findOne({ _id: req.params.id });
     if (!cn)
       return res
         .status(400)
@@ -281,14 +287,14 @@ const UpdateItem = async (req, res) => {
     let isDuplicate;
     if (specs["type"] == true) {
       if (req.body.title)
-        isDuplicate = await Custom.findOne({
+        isDuplicate = await Testimonial.findOne({
           title: cn.title,
           type: cn.type,
           eID: cn.eID,
         });
     } else {
       if (req.body.title)
-        isDuplicate = await Custom.findOne({
+        isDuplicate = await Testimonial.findOne({
           title: cn.title,
           eID: cn.eID,
         });
@@ -337,34 +343,38 @@ const Create = async (req, res) => {
           .status(412)
           .send({ message: `Please provide Item type`, status: 412 });
 
-      cn = await Custom.findOne({
+      cn = await Testimonial.findOne({
         title: req.body.title,
         eID: req.params.id,
         type: req.params.type,
       });
     } else {
-      cn = await Custom.findOne({
+      cn = await Testimonial.findOne({
         title: req.body.title,
         eID: req.params.id,
       });
     }
 
     if (!cn) {
-      cn = new Custom({ ...req.body });
+      cn = new Testimonial({ ...req.body });
       if (specs["type"] == true) {
-        await Custom.countDocuments(
+        await Testimonial.countDocuments(
           { eID: req.params.id, type: req.params.type },
           function (err, c) {
             cn.priority = c;
           }
         );
       } else {
-        await Custom.countDocuments({ eID: req.params.id }, function (err, c) {
+        await Testimonial.countDocuments({ eID: req.params.id }, function (
+          err,
+          c
+        ) {
           cn.priority = c;
         });
       }
       cn.eID = req.params.id;
       if (specs["type"]) cn.type = req.params.type;
+      console.log("BEFOER SERES");
       cn = await cn.save();
       return res.send({
         message: `Created Item`,
@@ -391,7 +401,7 @@ const Remove = async (req, res) => {
       status: 412,
     });
   try {
-    const cn = await Custom.findOne({
+    const cn = await Testimonial.findOne({
       _id: req.params.id,
     });
     if (!cn)
@@ -416,7 +426,7 @@ const RemoveType = async (req, res) => {
       status: 412,
     });
   try {
-    const cn = await Custom.deleteMany({
+    const cn = await Testimonial.deleteMany({
       eID: req.params.cID,
       type: req.params.type,
     });

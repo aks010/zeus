@@ -75,6 +75,8 @@ const ListSpecification = async (req, res) => {
       let data = {};
       data["required"] = SPECIFICATIONS[model.toLowerCase()].required;
       data["options"] = [];
+      console.log("IAM INSIDE");
+      console.log(specs);
       for (const [key, value] of Object.entries(specs)) {
         if (value === true)
           if (!data["required"].includes(key)) data["options"].push(key);

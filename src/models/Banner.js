@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 // const autoIncrement = require("mongoose-auto-increment");
 const Category = require("./Category");
 const Utils = require("../shared/utils/helper");
+const Spec = require("./Type/Spec");
 
 const BannerSchema = new mongoose.Schema(
   {
@@ -77,8 +78,10 @@ BannerSchema.pre("remove", async function (next) {
         banner["model"],
         banner["_id"]
       );
-      if (!error) return next();
-      else throw new Error(error);
+      if (!error) {
+        await Spec.deleteOne({ eID: banner._id });
+        return next();
+      } else throw new Error(error);
     }
   } catch (e) {
     console.log("Middleware Error!");

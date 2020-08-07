@@ -4,10 +4,8 @@ const Article = require("../../models/Type/Article");
 const Custom = require("../../models/Type/Custom");
 const Testimonial = require("../../models/Type/Testimonial");
 const Vehicle = require("../../models/Type/Vehicle");
-const WithIcon = require("../../models/Type/WithIcon");
 const Category = require("../../models/Category");
 const Banner = require("../../models/Banner");
-// const cool = require("../../models/Cool");
 
 const modelList = () => {
   const data = Object.values(MODELS);
@@ -25,8 +23,6 @@ const checkModelExistence = (model) => {
     case MODELS.VEHICLE.toLowerCase():
       return true;
     case MODELS.TESTIMONIAL.toLowerCase():
-      return true;
-    case MODELS.WITHICON.toLowerCase():
       return true;
     case MODELS.CATEGORY.toLowerCase():
       return true;
@@ -53,10 +49,6 @@ const setModelSpecification = async (model, ID) => {
       }
       case MODELS.TESTIMONIAL: {
         await Testimonial.SetSpecification(ID);
-        break;
-      }
-      case MODELS.WITHICON: {
-        await WithIcon.SetSpecification(ID);
         break;
       }
       case MODELS.CATEGORY: {
@@ -95,10 +87,6 @@ const getDataFromModel = async (model, ID) => {
         data = await Testimonial.sendData(ID);
         break;
       }
-      case MODELS.WITHICON: {
-        data = await WithIcon.sendData(ID);
-        break;
-      }
       default:
         throw Error(
           `Requested Model: ${model}, is not in DB! Please Ensure Correct Model Names`
@@ -131,10 +119,6 @@ const removeDataFromModel = async (model, eID) => {
       }
       case MODELS.TESTIMONIAL: {
         await Testimonial.deleteMany({ eID });
-        break;
-      }
-      case MODELS.WITHICON: {
-        await WithIcon.deleteMany({ eID });
         break;
       }
       default:
